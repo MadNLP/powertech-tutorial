@@ -136,6 +136,7 @@ b_gpu = CUDA.zeros(Float64, nx)
 
 solver = CudssSolver(G, "G", 'F')
 cudss_set(solver, "reordering_alg", "algo2") # we have to change the ordering to get valid results
+cudss_set(solver, "solve_alg", "algo2") # we have to change the ordering to get valid results
 cudss("analysis", solver, d_gpu, b_gpu)
 
 # Hence, we are now able to replace KLU by CUDSS in the Newton solver we implemented
@@ -157,25 +158,21 @@ tol = 1e-8
 i = 1
 for i in 1:max_iter
     @info "It: $(i) residual: $(norm(residual))"
-    # Stopping criterion
     if norm(residual) <= tol
         break
     end
-    # Update values in Jacobian
-    NLPModels.jac_coord!(nlp_gpu, x, Jx)
+    NLPModels.jac_coord!(nlp_gpu, x, Jx) # Update values in Jacobian
     nonzeros(G) .= Jx[coo_to_csr]
-    # Update numerical factorization
-    cudss_set(solver, G)
+    cudss_set(solver, G)                 # Update numerical factorization
     cudss("refactorization", solver, d_gpu, b_gpu)
-    # Compute Newton direction using a backsolve
     b_gpu .= residual
     cudss("solve", solver, d_gpu, b_gpu)
-    # Update dependent variables
     x[ind_dep] .-= d_gpu
-    # Refresh residuals
     NLPModels.cons!(nlp_gpu, x, c)
 end
 
 # We observe that we get exactly the same convergence as before on the CPU.
+# However, the time to solution is significantly higher than on the CPU: it turns out that
+# KLU is much more efficient than cuDSS on this particular example.
 
 

@@ -252,16 +252,11 @@ for i in 1:max_iter
     if norm(residual) <= tol
         break
     end
-    # Update values in Jacobian
-    NLPModels.jac_coord!(nlp, x, Jx)
+    NLPModels.jac_coord!(nlp, x, Jx) # Update values in Jacobian
     nonzeros(G) .= Jx[coo_to_csc]
-    # Update numerical factorization
-    klu!(ls, G)
-    # Compute Newton direction using a backsolve
-    ldiv!(d, ls, residual)
-    # Update dependent variables
+    klu!(ls, G)                      # Update numerical factorization
+    ldiv!(d, ls, residual)           # Compute Newton direction using a backsolve
     x[ind_dep] .-= d
-    # Refresh residuals
     NLPModels.cons!(nlp, x, c)
 end
 
