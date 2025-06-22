@@ -107,6 +107,7 @@ NLPModels.jac_coord!(nlp_gpu, x0, Jx)
 
 CUDA.@time NLPModels.cons!(nlp_gpu, x0, c)
 CUDA.@time NLPModels.jac_coord!(nlp_gpu, x0, Jx)
+nothing
 
 # We observe that the evaluation of the Jacobian takes 0.3ms in this case.
 # In the function `analyse_sparsity`, we provide a sparse routine to extract the submatrix corresponding to the power flow equations

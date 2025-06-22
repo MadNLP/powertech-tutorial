@@ -244,7 +244,7 @@ use Newton method over the power flow balance equations.
 
 ## Solving the power flow equations using the Newton algorithm
 
-We load the numbers of variables, constraints and nonzeroes in the Jacobian
+We load the numbers of variables, constraints and nonzeros in the Jacobian
 (all these values are provided automatically by ExaModels):
 
 ````@example 1-powerflow
@@ -295,7 +295,7 @@ G = J[m_fixed+1:end, ind_dep]
 ````
 
 This is the matrix we need in the Newton algorithm. But before implementing it, we need
-one last routine to pass the data from the vector `Jx` (in COO format) to the nonzeroes
+one last routine to pass the data from the vector `Jx` (in COO format) to the nonzeros
 in the CSC matrix G. To do this, we use the following trick:
 
 ````@example 1-powerflow
@@ -383,7 +383,7 @@ nlines = length(data.branch)
 
 nlp = powerflow_model(data)
 results = solve_power_flow(nlp)
-vm = results[nbus+1:2*nbus]
+nothing
 ````
 
 ---

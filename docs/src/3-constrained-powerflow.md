@@ -170,6 +170,7 @@ We generate a new model using the function `constrained_power_flow_model`:
 
 ````@example 3-constrained-powerflow
 nlp = constrained_power_flow_model(data)
+nothing
 ````
 
 As we have incorporated bounds to our optimization variables, the constrained power flow
@@ -223,6 +224,8 @@ results = madnlp(nlp_gpu)
 nothing
 ````
 
+MadNLP detects automatically that the ExaModel instance `nlp_gpu` has been instantiated on the GPU,
+as a result the solver is able to solve the instance entirely on the GPU using the linear solver cuDSS.
 Note that we converge to the same objective value, but the the number of iterations is different,
 as well as the final convergence tolerance: when solving a model on the GPU with cuDSS, MadNLP has to use
 a few numerical tricks that impact slightly the accuracy in the evaluation. As a result, the tolerance has to be creased to obtain a reliable convergence on the GPU. If the solution is not satisfactory, you can specify

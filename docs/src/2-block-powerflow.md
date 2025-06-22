@@ -144,6 +144,7 @@ synchronization time in CUDA:
 ````@example 2-block-powerflow
 CUDA.@time NLPModels.cons!(nlp_gpu, x0, c)
 CUDA.@time NLPModels.jac_coord!(nlp_gpu, x0, Jx)
+nothing
 ````
 
 We observe that the evaluation of the Jacobian takes 0.3ms in this case.

@@ -187,7 +187,7 @@ residual = norm(c[m_fixed+1:end])
 
 # ## Solving the power flow equations using the Newton algorithm
 
-# We load the numbers of variables, constraints and nonzeroes in the Jacobian
+# We load the numbers of variables, constraints and nonzeros in the Jacobian
 # (all these values are provided automatically by ExaModels):
 n = NLPModels.get_nvar(nlp)
 m = NLPModels.get_ncon(nlp)
@@ -216,7 +216,7 @@ J = sparse(Ji, Jj, Jx, m, n)
 G = J[m_fixed+1:end, ind_dep]
 
 # This is the matrix we need in the Newton algorithm. But before implementing it, we need
-# one last routine to pass the data from the vector `Jx` (in COO format) to the nonzeroes
+# one last routine to pass the data from the vector `Jx` (in COO format) to the nonzeros
 # in the CSC matrix G. To do this, we use the following trick:
 Jx .= 1:nnzj # store index of each coefficient in Jx
 J = sparse(Ji, Jj, Jx, m, n)  # convert the COO matrix to CSC
@@ -279,5 +279,5 @@ nlines = length(data.branch)
 
 nlp = powerflow_model(data)
 results = solve_power_flow(nlp)
-vm = results[nbus+1:2*nbus]
+nothing
 
