@@ -1,5 +1,5 @@
 
-# # Tutorial 1: solving the power-flow equations
+# # Tutorial 1: solving the power-flow equations with ExaModels
 #
 # In this tutorial, we detail how to use ExaModels to solve the power flow
 # equations on the GPU. We start by describing the model we use, and then write
@@ -20,7 +20,8 @@ include("utils.jl")
 
 # We load the classical case9ieee instance, here generated using the MATPOWER
 # file found in [matpower repo](https://github.com/MATPOWER/).
-data = JLD2.load("instances/case9.jld2")["data"]
+DATA_DIR = "/home/fpacaud/dev/examodels-tutorials/instances"
+data = JLD2.load(joinpath(DATA_DIR, "case9.jld2"))["data"]
 
 # The number of buses, generators and lines are:
 nbus = length(data.bus)
@@ -184,7 +185,7 @@ residual = norm(c[m_fixed+1:end])
 # use Newton method over the power flow balance equations.
 
 
-# ## Solving the power flow equations using Newton
+# ## Solving the power flow equations using the Newton algorithm
 
 # We load the numbers of variables, constraints and nonzeroes in the Jacobian
 # (all these values are provided automatically by ExaModels):
@@ -248,7 +249,6 @@ tol = 1e-8
 @info "Solving the power flow equations with Newton"
 for i in 1:max_iter
     @info "It: $(i) residual: $(norm(residual))"
-    # Stopping criterion
     if norm(residual) <= tol
         break
     end
@@ -272,7 +272,7 @@ include("powerflow.jl")
 
 # You can test the performance of Newton on various cases using the following code:
 
-data = JLD2.load("instances/pglib_opf_case1354_pegase.jld2")["data"]
+data = JLD2.load(joinpath(DATA_DIR, "pglib_opf_case1354_pegase.jld2"))["data"]
 ngen = length(data.gen)
 nbus = length(data.bus)
 nlines = length(data.branch)

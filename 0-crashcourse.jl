@@ -37,7 +37,7 @@ x_gpu .+= 1.0
 # Now comes the question of evaluating complicated expressions on the GPU.
 
 # ## Modeling with ExaModels.jl
-# In optimization, it is recommended to use a modeler that acts as a domain specific language providing you all the syntax needed to implement your optimization problem. [Ampl](ampl.com), [JuMP.jl](https://jump.dev) and [Pyomo](https://www.pyomo.org/) are among the most popular modelers, but none of them support GPUs.
+# In optimization, it is recommended to use a modeler that acts as a domain specific language providing you all the syntax needed to implement your optimization problem. [Ampl](https://ampl.com), [JuMP.jl](https://jump.dev) and [Pyomo](https://www.pyomo.org/) are among the most popular modelers, but none of them support GPUs.
 # [ExaModels.jl](https://exanauts.github.io/ExaModels.jl/dev/) is an attempt to fill this gap.
 # As for CUDA.jl, we recommend [this introductory course](https://exanauts.github.io/ExaModels.jl/dev/guide/) to ExaModels.
 

@@ -22,7 +22,8 @@ using JLD2
 include("utils.jl")
 
 # We import a small instance:
-data = JLD2.load("instances/case9.jld2")["data"]
+DATA_DIR = "/home/fpacaud/dev/examodels-tutorials/instances"
+data = JLD2.load(joinpath(DATA_DIR, "case9.jld2"))["data"]
 ngen = length(data.gen)
 nbus = length(data.bus)
 nlines = length(data.branch)
@@ -60,7 +61,7 @@ function acopf_model(
 
     c1 = ExaModels.constraint(w, va[i] for i in data.ref_buses)
 
-    # Active power flow, FR
+    ## Active power flow, FR
     c2 = ExaModels.constraint(
         w,
         p[b.f_idx] - b.c5 * vm[b.f_bus]^2 -
@@ -68,7 +69,7 @@ function acopf_model(
         b.c4 * (vm[b.f_bus] * vm[b.t_bus] * sin(va[b.f_bus] - va[b.t_bus])) for
         b in data.branch
     )
-    # Reactive power flow, FR
+    ## Reactive power flow, FR
     c3 = ExaModels.constraint(
         w,
         q[b.f_idx] +
@@ -77,7 +78,7 @@ function acopf_model(
         b.c3 * (vm[b.f_bus] * vm[b.t_bus] * sin(va[b.f_bus] - va[b.t_bus])) for
         b in data.branch
     )
-    # Active power flow, TO
+    ## Active power flow, TO
     c4 = ExaModels.constraint(
         w,
         p[b.t_idx] - b.c7 * vm[b.t_bus]^2 -
@@ -85,7 +86,7 @@ function acopf_model(
         b.c2 * (vm[b.t_bus] * vm[b.f_bus] * sin(va[b.t_bus] - va[b.f_bus])) for
         b in data.branch
     )
-    # Reactive power flow, TO
+    ## Reactive power flow, TO
     c5 = ExaModels.constraint(
         w,
         q[b.t_idx] +
@@ -95,14 +96,14 @@ function acopf_model(
         b in data.branch
     )
 
-    # Voltage angle difference
+    ## Voltage angle difference
     c6 = ExaModels.constraint(
         w,
         va[b.f_bus] - va[b.t_bus] for b in data.branch;
         lcon = data.angmin,
         ucon = data.angmax,
     )
-    # Line flow constraints
+    ## Line flow constraints
     c7 = ExaModels.constraint(
         w,
         p[b.f_idx]^2 + q[b.f_idx]^2 - b.rate_a_sq for b in data.branch;
@@ -114,11 +115,11 @@ function acopf_model(
         lcon = fill!(similar(data.branch, Float64, length(data.branch)), -Inf),
     )
 
-    # Active power balance
+    ## Active power balance
     c9 = ExaModels.constraint(w, b.pd + b.gs * vm[b.i]^2 for b in data.bus)
     c11 = ExaModels.constraint!(w, c9, a.bus => p[a.i] for a in data.arc)
     c13 = ExaModels.constraint!(w, c9, g.bus => -pg[g.i] for g in data.gen)
-    # Reactive power balance
+    ## Reactive power balance
     c10 = ExaModels.constraint(w, b.qd - b.bs * vm[b.i]^2 for b in data.bus)
     c12 = ExaModels.constraint!(w, c10, a.bus => q[a.i] for a in data.arc)
     c14 = ExaModels.constraint!(w, c10, g.bus => -qg[g.i] for g in data.gen)
@@ -132,22 +133,26 @@ using MadNLP
 
 nlp = acopf_model(data)
 results = madnlp(nlp)
+nothing
 
 # ## Solving optimal power flow on the GPU
 # For solving the optimal power flow model on the GPU, the set-up is similar to
 # what we have detailed in the tutorial 3. We start by importing MadNLPGPU, and we
 # instantiate a new optimal power flow instance on the GPU:
+using CUDA
 using MadNLPGPU
 
 nlp_gpu = acopf_model(data; backend=CUDABackend())
 
 # Solving the problem using cuDSS simply amounts to
 results = madnlp(nlp_gpu)
+nothing
 
 # The instance `case9` is too small to get any significant speed-up compared
 # to the CPU. However, we can solve a larger instance just by importing new data:
 # For instance, to solve the case `10000_goc`:
-data = JLD2.load("instances/pglib_opf_case10000_goc.jld2")["data"]
+data = JLD2.load(joinpath(DATA_DIR, "pglib_opf_case10000_goc.jld2"))["data"]
 nlp_gpu = acopf_model(data; backend=CUDABackend())
-results = madnlp(nlp_gpu; cudss_algorithm=MadNLP.LDL, max_iter=100)
+results = madnlp(nlp_gpu)
+nothing
 

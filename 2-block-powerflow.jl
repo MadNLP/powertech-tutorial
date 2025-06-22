@@ -18,12 +18,15 @@ using JLD2
 include("utils.jl")
 
 # We load again the instance case9ieee:
-data = JLD2.load("instances/case9.jld2")["data"]
+DATA_DIR = "/home/fpacaud/dev/examodels-tutorials/instances"
+data = JLD2.load(joinpath(DATA_DIR, "case9.jld2"))["data"]
 
 nbus = length(data.bus)
 ngen = length(data.gen)
 nlines = length(data.branch)
 
+# ## Block power flow with ExaModels
+#
 # The power flow are parameterized by the active and reactive power loads
 # ``p_d`` and ``q_d`` we have at each bus, among others. This gives a total
 # of `2*nbus` parameters.
@@ -71,10 +74,13 @@ nlp = block_power_flow_model(data, N)
 # The power flow model can be solved on the CPU using the function
 # `solve_power_flow` we implemented in the previous tutorial:
 results = solve_power_flow(nlp, N)
+nothing
 
 # We recover the solution in matrix format using:
 vm = reshape(results[nbus*N+1:2*nbus*N], nbus, N)
 
+# ## Solving the power flow equations in batch on the GPU
+#
 # Note that here we don't exploit in the solution method the fact that the ``N`` blocks are independent.
 # ExaModels is able to detect the repeated data structure automatically, and can evaluate them in
 # parallel on the GPU. That's the core benefit of the SIMD abstraction used by ExaModels.
@@ -136,7 +142,6 @@ b_gpu = CUDA.zeros(Float64, nx)
 
 solver = CudssSolver(G, "G", 'F')
 cudss_set(solver, "reordering_alg", "algo2") # we have to change the ordering to get valid results
-cudss_set(solver, "solve_alg", "algo2") # we have to change the ordering to get valid results
 cudss("analysis", solver, d_gpu, b_gpu)
 
 # Hence, we are now able to replace KLU by CUDSS in the Newton solver we implemented

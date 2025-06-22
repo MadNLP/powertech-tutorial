@@ -18,12 +18,13 @@ using JLD2
 include("utils.jl")
 
 # We import a small instance:
-data = JLD2.load("instances/case9.jld2")["data"]
+DATA_DIR = "/home/fpacaud/dev/examodels-tutorials/instances"
+data = JLD2.load(joinpath(DATA_DIR, "case9.jld2"))["data"]
 ngen = length(data.gen)
 nbus = length(data.bus)
 nlines = length(data.branch)
 
-# ## Model
+# ## Constrained power flow
 # On the contrary to the tutorial 2, we consider again the power flow equations with a batch size equal to 1.
 # The bounds are easy to define in ExaModels, as we can pass them to the model directly when we are calling the function `variable` using the keyword `lvar` and `uvar`. We use the bounds specified in the
 # data. As a results, the variables are initialized as follows:
@@ -86,18 +87,18 @@ function constrained_power_flow_model(
     qg = ExaModels.variable(w, ngen;  start=data.qg0, lvar = data.qmin, uvar = data.qmax)
     p = ExaModels.variable(w, 2*nlines)
     q = ExaModels.variable(w, 2*nlines)
-    # slack variables
+    ## slack variables
     spp = ExaModels.variable(w, nbus; lvar=0.0)
     spn = ExaModels.variable(w, nbus; lvar=0.0)
     sqp = ExaModels.variable(w, nbus; lvar=0.0)
     sqn = ExaModels.variable(w, nbus; lvar=0.0)
 
-    # Fix variables to setpoint
+    ## Fix variables to setpoint
     c1 = ExaModels.constraint(w, va[i] for i in data.ref_buses)
     c01 = ExaModels.constraint(w, vm[i] for i in pv_buses; lcon=data.vm0[pv_buses], ucon=data.vm0[pv_buses])
     c02 = ExaModels.constraint(w, pg[i] for i in free_gen; lcon=data.pg0[free_gen], ucon=data.pg0[free_gen])
 
-    # Active power flow, FR
+    ## Active power flow, FR
     c2 = ExaModels.constraint(
         w,
         p[b.f_idx] - b.c5 * vm[b.f_bus]^2 -
@@ -105,7 +106,7 @@ function constrained_power_flow_model(
         b.c4 * (vm[b.f_bus] * vm[b.t_bus] * sin(va[b.f_bus] - va[b.t_bus])) for
         b in data.branch
     )
-    # Reactive power flow, FR
+    ## Reactive power flow, FR
     c3 = ExaModels.constraint(
         w,
         q[b.f_idx] +
@@ -114,7 +115,7 @@ function constrained_power_flow_model(
         b.c3 * (vm[b.f_bus] * vm[b.t_bus] * sin(va[b.f_bus] - va[b.t_bus])) for
         b in data.branch
     )
-    # Active power flow, TO
+    ## Active power flow, TO
     c4 = ExaModels.constraint(
         w,
         p[b.t_idx] - b.c7 * vm[b.t_bus]^2 -
@@ -122,7 +123,7 @@ function constrained_power_flow_model(
         b.c2 * (vm[b.t_bus] * vm[b.f_bus] * sin(va[b.t_bus] - va[b.f_bus])) for
         b in data.branch
     )
-    # Reactive power flow, TO
+    ## Reactive power flow, TO
     c5 = ExaModels.constraint(
         w,
         q[b.t_idx] +
@@ -132,7 +133,7 @@ function constrained_power_flow_model(
         b in data.branch
     )
 
-    # Power flow constraints
+    ## Power flow constraints
     c9 = ExaModels.constraint(w, b.pd + b.gs * vm[b.i]^2 - spp[b.i] + spn[b.i] for b in data.bus)
     c10 = ExaModels.constraint(w, b.qd - b.bs * vm[b.i]^2 - sqp[b.i] + sqn[b.i] for b in data.bus)
     c11 = ExaModels.constraint!(w, c9, a.bus => p[a.i] for a in data.arc)
@@ -163,6 +164,7 @@ nlp = constrained_power_flow_model(data)
 
 using MadNLP
 results = madnlp(nlp)
+nothing
 
 # We observe that MadNLP converges, and final objective is close to 0, meaning that
 # the power flow is feasible within the bounds. The solution returned by MadNLP is the
@@ -173,26 +175,29 @@ vm = results.solution[nbus+1:2*nbus]
 # Observe that this is not the case on most instances. E.g., MadNLP converges to
 # a solution with a nonzero objective on `89pegase`, meaning this instance does not have a solution
 # of the power flow equations within the bounds.
-data = JLD2.load("instances/pglib_opf_case89_pegase.jld2")["data"]
+data = JLD2.load(joinpath(DATA_DIR, "pglib_opf_case89_pegase.jld2"))["data"]
 nlp = constrained_power_flow_model(data)
 results = madnlp(nlp)
-
+nothing
 
 # ## Deporting the solution on the GPU
 # Like our previous custom Newton algorithm, MadNLP supports by default offloading the solution of the
 # model on the GPU, using the extension MadNLPGPU:
+using CUDA
 using MadNLPGPU
 
 # Once MadNLPGPU is imported, you just have to instantiate the previous model also on the GPU to solve
 # it using MadNLP:
 nlp_gpu = constrained_power_flow_model(data; backend=CUDABackend())
 results = madnlp(nlp_gpu)
+nothing
 
 # Note that we converge to the same objective value, but the the number of iterations is different,
 # as well as the final convergence tolerance: when solving a model on the GPU with cuDSS, MadNLP has to use
 # a few numerical tricks that impact slightly the accuracy in the evaluation. As a result, the tolerance has to be creased to obtain a reliable convergence on the GPU. If the solution is not satisfactory, you can specify
 # your own convergence tolerance by using the option `tol`. E.g., to solve the model with the same precision as on the CPU:
 results = madnlp(nlp_gpu; tol=1e-8)
+nothing
 
 # Using MadNLP, we have now all the elements in hand to solve the optimal power flow problem on the GPU.
 
