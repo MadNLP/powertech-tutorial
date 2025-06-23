@@ -6,8 +6,7 @@ EditURL = "../../1-powerflow.jl"
 
 In this tutorial, we detail how to use ExaModels to solve the power flow
 equations on the GPU. We start by describing the model we use, and then write
-a basic Newton solver in Julia. Then we detail how to port the algorithm to the GPU
-for faster performance
+a basic Newton solver in Julia.
 
 We start by importing the usual packages (including JLD2, a package to import
 serialized data in Julia)
@@ -25,7 +24,7 @@ include("utils.jl")
 ````
 
 We load the classical case9ieee instance, here generated using the MATPOWER
-file found in [matpower repo](https://github.com/MATPOWER/).
+file found in the [matpower repo](https://github.com/MATPOWER/).
 
 ````@example 1-powerflow
 DATA_DIR = "/home/fpacaud/dev/examodels-tutorials/instances"
@@ -49,21 +48,22 @@ free_gen = get_free_generators(data)
 
 ## Implementing the power flow equations with ExaModels
 
-When using the polar formulation, the power flow model requires the following variables:
+We model the power flow equations using the AC polar formulation.
+The AC polar formulation requires the following variables:
 
-1. The voltage magnitude at nodes ``v_m``
-2. The voltage angles at nodes ``v_a``
+1. The voltage magnitude at buses ``v_m``
+2. The voltage angles at buses ``v_a``
 3. The active power generation ``p_g``
 4. The reactive power generation ``q_g``
 5. The active power flow through the lines ``p``
 6. The reactive power flow through the lines ``q``
 
 The variables ``p`` and ``q`` are dependent variables depending on the voltage magnitudes
-and angles at the adjacent nodes. The structure of the problem implies that the only
-degree-of-freedom are the voltage magnitude at the PV and REF buses, the voltage angle at the REF buses
+and angles at the adjacent nodes. The structure of the problem implies that the
+degree-of-freedoms are the voltage magnitude at the PV and REF buses, the voltage angle at the REF buses
 (usually set equal to 0) and the active power generation at the PV buses.
 
-We define the variable in ExaModels.
+We define the variables in ExaModels.
 
 ````@example 1-powerflow
 core = ExaCore()
@@ -78,15 +78,14 @@ q = variable(core, 2*nlines) # FR and TO lines
 We set the initial values in `vm`, `pg` and `qg` using the setpoint values
 specified in the matpower file.
 
-As we solve the power flow equations, the degree-of-freedom are fixed. We fix them
-in the model using a set of equality constraints:
-We iterate over the reference buses to set their voltage and to 0
+We fix the degree-of-freedom at their setpoint using equality constraints.
+We iterate over the reference buses to set their voltage and to 0,
 
 ````@example 1-powerflow
 c1 = constraint(core, va[i] for i in data.ref_buses)
 ````
 
-and over the PV buses to set the voltage magnitude to the setpoint
+over the PV buses to set the voltage magnitude to the setpoint,
 
 ````@example 1-powerflow
 c01 = constraint(core, vm[i] for i in pv_buses; lcon=data.vm0[pv_buses], ucon=data.vm0[pv_buses])
@@ -100,21 +99,21 @@ c02 = constraint(core, pg[i] for i in free_gen; lcon=data.pg0[free_gen], ucon=da
 
 We use the same model as in [MATPOWER](https://matpower.org/docs/manual.pdf)
 to model the transmission lines, based on the standard ``π`` transmission line model in series with an ideal phase-shifting transformer.
-Using the polar formulation, the active power through the line ``(i, j)`` is defined as
+Using the polar formulation, the active power through the line ``(i, j)`` is defined as at the *from end* of the branch
 ```math
-  p_{i j} = g_{i i} v_{m,i}^2
-  + g_{i j} v_{m, i} v_{m, j} \cos(v_{a, i} - v_{a, j})
-  + b_{i j} v_{m, i} v_{m, j} \sin(v_{a, i} - v_{a, j})
+  p_{i j} = v_{m,i} (g_{i i} v_{m,i}
+  + g_{i j} v_{m, j} \cos(v_{a, i} - v_{a, j})
+  + b_{i j} v_{m, j} \sin(v_{a, i} - v_{a, j}))
 
 ```
-and the reactive power is defined similarly as
+and the reactive power is defined similarly at the *from end* of the branch
 ```math
-  q_{i j} = g_{i i} v_{m,i}^2
-  + g_{i j} v_{m, i} v_{m, j} \sin(v_{a, i} - v_{a, j})
-  - b_{i j} v_{m, i} v_{m, j} \cos(v_{a, i} - v_{a, j})
+  q_{i j} = v_{m,i} (g_{i i} v_{m,i}^2
+  + g_{i j}  v_{m, j} \sin(v_{a, i} - v_{a, j})
+  - b_{i j}  v_{m, j} \cos(v_{a, i} - v_{a, j}))
 
 ```
-Using ExaModels, these two equations translate to the following constraints at the origin
+Using ExaModels, these two equations translate to the following constraints at the from end of each branch
 
 ````@example 1-powerflow
 c2 = ExaModels.constraint(
@@ -134,7 +133,7 @@ c3 = ExaModels.constraint(
 )
 ````
 
-Similarly, the power flow at the destination are
+Similarly, the power flow at the *to* end of each branch is
 
 ````@example 1-powerflow
 c4 = ExaModels.constraint(
@@ -144,11 +143,6 @@ c4 = ExaModels.constraint(
     b.c2 * (vm[b.t_bus] * vm[b.f_bus] * sin(va[b.t_bus] - va[b.f_bus])) for
     b in data.branch
 )
-````
-
-Reactive power flow, TO
-
-````@example 1-powerflow
 c5 = ExaModels.constraint(
     core,
     q[b.t_idx] +
@@ -160,23 +154,23 @@ c5 = ExaModels.constraint(
 ````
 
 It remains to write the power flow balance equations at each bus.
-They are defined, for the active power flow at bus ``i``
+They are defined for the active power flow at bus ``i=1, ⋯, n_{bus}``
 ```math
-   p_{g, i} - p_{d, i} - g_{s,i} v_{m,i}^2 = ∑_{j ∈ N(i)} p_{ij}
+   p_{g, i} - p_{d, i} - g_{sh,i} v_{m,i}^2 = ∑_{j ∈ N(i)} p_{ij}
 
 ```
-and for the reactive power flo at bus ``i``
+and for the reactive power flow at bus ``i= 1, ⋯, n_{bus}``
 ```math
-   q_{g, i} - q_{d, i} - b_{s,i} v_{m,i}^2 = ∑_{j ∈ N(i)} q_{ij}
+   q_{g, i} - q_{d, i} - b_{sh,i} v_{m,i}^2 = ∑_{j ∈ N(i)} q_{ij}
 
 ```
 
-Note that both set of constraints require to sum over the power flow at the adjacent lines.
-As we have seen before, ExaModels defines the sum with a reduction over a given iterator.
+Note that both set of constraints sum over the power flow at the adjacent lines.
+As we have seen before, ExaModels implements the sum as a reduction over a given iterator.
 As a consequence, we will evaluate the first terms ``p_{g, i} - p_{d, i} - g_{s,i} v_{m,i}^2 ``
 apart from the sum ``∑_{j ∈ N(i)} p_{ij}`` in the expression tree defining the active
 power flow balance. This translates to the following syntax in ExaModels. We first
-iterate over all the buses to define the first part of the expressions:
+iterate over all the buses to define the first part in the expressions:
 
 ````@example 1-powerflow
 active_flow_balance = ExaModels.constraint(core, b.pd + b.gs * vm[b.i]^2 for b in data.bus)
@@ -202,15 +196,15 @@ ExaModels.constraint!(core, reactive_flow_balance, a.bus => q[a.i] for a in data
 ExaModels.constraint!(core, reactive_flow_balance, g.bus => -qg[g.i] for g in data.gen)
 ````
 
-We have now defined all the equations needed to evaluate the power flow equations!
-Note that we have defined all the expressions inside ExaModels: to evaluate them,
+We have now all the equations to evaluate the power flow!
+Note that we have defined all the expressions inside `core`: to evaluate them,
 we convert the ExaCore to a proper ExaModel as:
 
 ````@example 1-powerflow
 nlp = ExaModel(core)
 ````
 
-Using NLPModels, evaluating the power flow at the initial setpoint amounts to
+Using NLPModels API, evaluating the power flow at the initial setpoint amounts to
 
 ````@example 1-powerflow
 x0 = NLPModels.get_x0(nlp)
@@ -218,11 +212,11 @@ c = NLPModels.cons(nlp, x0)
 ````
 
 Remember that the first equations `c1`, `c01`, and `c02` are fixing the degree-of-freedom
-to their setpoint. The power flow equations per-se are defined by the remaining equations,
-starting with the constraint `c2`:
+to their setpoint. The power flow equations *per-se* are defined by the remaining equations,
+starting with the constraint `c2`. We use the attribute `offset` to determine where does the power flow eq. start in the model
 
 ````@example 1-powerflow
-m_fixed = c2.offset # use offset to determine where does the power flow eq. start in the model
+m_fixed = c2.offset
 ````
 
 We compute the norm-2 of the initial residual:
@@ -231,11 +225,11 @@ We compute the norm-2 of the initial residual:
 residual = norm(c[m_fixed+1:end])
 ````
 
-Note that if the power flow equations are satisfied, this residual should be 0, which is not
+Note that if the power flow equations are satisfied the residual would be 0, which is not
 the case here. We remember that our degree-of-freedom are:
 
 - voltage angle at ref buses;
-- voltage magnitude at PV and ref buses;
+- voltage magnitude at PV and REF buses;
 - active power generation at PV buses;
 
 We keep the degree-of-freedom fixed, and looks for the dependent variables
@@ -259,13 +253,13 @@ We load the index of the degree-of-freedom in our model using a utility function
 ind_dof = get_index_dof(data)
 ````
 
-and the indexes of dependent variables are automatically defined as
+and the set of dependent variables is defined as the complement:
 
 ````@example 1-powerflow
 ind_dep = setdiff(1:n, ind_dof)
 ````
 
-We start by evaluating the Jacobian of our model using NLPModels syntax.
+We start by evaluating the Jacobian using NLPModels.
 We get the sparsity pattern of our Jacobian in COO format directly by using:
 
 ````@example 1-powerflow
@@ -288,13 +282,13 @@ our Jacobian to CSC directly using Julia syntax:
 J = sparse(Ji, Jj, Jx, m, n)
 ````
 
-And we can extract from the Jacobian the part associated to the power flow balance;
+And we can extract from the Jacobian the part associated to the power flow balance:
 
 ````@example 1-powerflow
 G = J[m_fixed+1:end, ind_dep]
 ````
 
-This is the matrix we need in the Newton algorithm. But before implementing it, we need
+This is exactly the matrix we need in the Newton algorithm. We just need
 one last routine to pass the data from the vector `Jx` (in COO format) to the nonzeros
 in the CSC matrix G. To do this, we use the following trick:
 
@@ -305,7 +299,13 @@ G = J[m_fixed+1:end, ind_dep] # extract the submatrix associated to the power fl
 coo_to_csc = convert.(Int, nonzeros(G))
 ````
 
-Using this vector of indices, we can automatically pass the data from Jx to G with:
+!!! info
+    Observe that the sparsity pattern of `G` is not symmetric, as it is the case in matpower.
+    Indeed,  we model explicitly the active and reactive power flow `(p, q)`
+    through each branch, whereas matpower keeps them implicit (and as a consequence uses a much
+    more compact model).
+
+Using this vector of indices, we can automatically pass the data from `Jx` to `G` with:
 
 ````@example 1-powerflow
 nonzeros(G) .= Jx[coo_to_csc]
@@ -330,7 +330,7 @@ NLPModels.jac_coord!(nlp, x, Jx)
 nonzeros(G) .= Jx[coo_to_csc]
 ````
 
-We compute the symbolic factorization using the direct solver KLU directly as
+We compute the symbolic factorization using the direct solver KLU:
 
 ````@example 1-powerflow
 ls = klu(G)
@@ -358,16 +358,22 @@ end
 ````
 
 We observe that the Newton algorithm has converged in 5 iterations! The final
-residual is not exactly 0 but is close enough (close to 1e-14).
-We can recover the solution directly by looking at the values in the vector `x`:
+residual is not exactly 0 but is close enough (close to `1e-14`).
+We can recover the solution directly by looking at the values in the vector `x`.
+For the voltage angle:
 
 ````@example 1-powerflow
 va_sol = x[1:nbus]
+````
+
+and for the voltage magnitude:
+
+````@example 1-powerflow
 vm_sol = x[nbus+1:2*nbus]
 ````
 
-We implement the generation of the model in a function `powerflow_model`,
-and the Newton algorithm in another function `solve_power_flow`:
+We have implemented the generation of the model in a function `powerflow_model`,
+and the previous Newton algorithm in a separate function `solve_power_flow`:
 
 ````@example 1-powerflow
 include("powerflow.jl")
@@ -377,9 +383,6 @@ You can test the performance of Newton on various cases using the following code
 
 ````@example 1-powerflow
 data = JLD2.load(joinpath(DATA_DIR, "pglib_opf_case1354_pegase.jld2"))["data"]
-ngen = length(data.gen)
-nbus = length(data.bus)
-nlines = length(data.branch)
 
 nlp = powerflow_model(data)
 results = solve_power_flow(nlp)

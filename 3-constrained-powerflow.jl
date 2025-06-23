@@ -2,9 +2,10 @@
 # # Tutorial 3: solving constrained power flow with MadNLP
 #
 # In this third tutorial, we look at a variant of the power flow equations,
-# where we add operational constraints on the different variables: we add
+# where we incorporate operational constraints on the different variables: we add
 # bounds on the voltage magnitude, the active and the reactive power genenerations.
-# Our goal is to identify if a solution of the power flow equations exists within these bounds.
+# Our goal is to identify if a solution of the power flow equations exists within these bounds
+# (without implementing a proper PV/PQ switching routine as in matpower).
 
 # We start by importing the usual packages:
 using LinearAlgebra
@@ -25,8 +26,8 @@ nbus = length(data.bus)
 nlines = length(data.branch)
 
 # ## Constrained power flow
-# On the contrary to the tutorial 2, we consider again the power flow equations with a batch size equal to 1.
-# The bounds are easy to define in ExaModels, as we can pass them to the model directly when we are calling the function `variable` using the keyword `lvar` and `uvar`. We use the bounds specified in the
+# On the contrary to the Tutorial 2, we consider again the power flow equations with a batch size equal to 1.
+# The bounds are easy to define in ExaModels, as we can pass them to the model directly when calling the function `variable` using the keywords `lvar` and `uvar`. We use the bounds specified in the
 # data. As a results, the variables are initialized as follows:
 core = ExaModels.ExaCore()
 
@@ -37,16 +38,16 @@ qg = ExaModels.variable(core, ngen;  start=data.qg0, lvar = data.qmin, uvar = da
 p = ExaModels.variable(core, 2*nlines)
 q = ExaModels.variable(core, 2*nlines)
 
-# As we are bounding the feasible set, we are not guaranteed to find a solution
-# of the power flow constraints satisfying the bound constraints. As a result, we
+# As we obtain a bounded feasible set, we are not guaranteed to find a solution
+# of the power flow constraints satisfying also the bound constraints. As a result, we
 # relax the power flow constraints and penalize their violation in the objective using a ℓ1 penalty.
 # If we denote by ``g(x) = 0`` the original power flow equations, the relaxed model writes
 # ```math
 # g(x) = σ_p - σ_n  \; , \; σ_p ≥ 0 \; , \; σ_n ≥ 0
 # ```
-# and we define the objective as ``f(σ) = 1^⊤ σ_P + 1^⊤ σ_N``.
+# and we define the penalization in the objective as ``f(σ) = 1^⊤ σ_P + 1^⊤ σ_N``.
 
-# The definition of the variables ``σ`` and the objective translates with ExaModels as
+# The variables ``σ`` and the objective are defined in ExaModels as
 spp = ExaModels.variable(core, nbus; lvar=0.0)
 spn = ExaModels.variable(core, nbus; lvar=0.0)
 sqp = ExaModels.variable(core, nbus; lvar=0.0)
@@ -150,16 +151,16 @@ end
 
 # ## Solution with the interior-point solver MadNLP
 #
-# We generate a new model using the function `constrained_power_flow_model`:
+# We generate a new model using our function `constrained_power_flow_model`:
 
 nlp = constrained_power_flow_model(data)
 nothing
 
-# As we have incorporated bounds to our optimization variables, the constrained power flow
+# As we have incorporated bounds on our optimization variables, the constrained power flow
 # is not solvable using the Newton method we used in the two previous tutorials. However,
 # it is good candidate for an interior-point method, as implemented in MadNLP.
 
-# MadNLP takes directly as input any model following the `AbstractNLPModel` abstraction, as it is
+# MadNLP takes as input any model following the `AbstractNLPModel` abstraction, as it is
 # the case with our model `nlp`. As a consequence, solving the constrained power flow equations simply amounts to
 # call the function `madnlp`:
 
@@ -167,40 +168,40 @@ using MadNLP
 results = madnlp(nlp)
 nothing
 
-# We observe that MadNLP converges, and final objective is close to 0, meaning that
+# We observe that MadNLP converges with a final objective close to 0, meaning that
 # the power flow is feasible within the bounds. The solution returned by MadNLP is the
-# same as those returned previously by our custom Newton solver:
+# same as those returned previously in Tutorial 1 by our custom Newton solver:
 vm = results.solution[nbus+1:2*nbus]
 
 
 # Observe that this is not the case on most instances. E.g., MadNLP converges to
 # a solution with a nonzero objective on `89pegase`, meaning this instance does not have a solution
-# of the power flow equations within the bounds.
+# of the power flow equations within bounded feasibility set.
 data = JLD2.load(joinpath(DATA_DIR, "pglib_opf_case89_pegase.jld2"))["data"]
 nlp = constrained_power_flow_model(data)
 results = madnlp(nlp)
 nothing
 
 # ## Deporting the solution on the GPU
-# Like our previous custom Newton algorithm, MadNLP supports by default offloading the solution of the
-# model on the GPU, using the extension MadNLPGPU:
+# Like our previous Newton algorithm, MadNLP supports offloading the solution of the
+# model on the GPU using the extension MadNLPGPU:
 using CUDA
 using MadNLPGPU
 
-# Once MadNLPGPU is imported, you just have to instantiate the previous model also on the GPU to solve
-# it using MadNLP:
+# Once MadNLPGPU is imported, you just have to instantiate the previous model on the GPU to solve it using the
+# same `madnlp` function:
 nlp_gpu = constrained_power_flow_model(data; backend=CUDABackend())
 results = madnlp(nlp_gpu)
 nothing
 
-# MadNLP detects automatically that the ExaModel instance `nlp_gpu` has been instantiated on the GPU,
-# as a result the solver is able to solve the instance entirely on the GPU using the linear solver cuDSS.
-# Note that we converge to the same objective value, but the the number of iterations is different,
-# as well as the final convergence tolerance: when solving a model on the GPU with cuDSS, MadNLP has to use
-# a few numerical tricks that impact slightly the accuracy in the evaluation. As a result, the tolerance has to be creased to obtain a reliable convergence on the GPU. If the solution is not satisfactory, you can specify
+# MadNLP detects automatically that the ExaModel instance `nlp_gpu` has been instantiated on the GPU.
+# As a result the solver is able to solve the instance entirely on the GPU with the linear solver cuDSS.
+# Note that we converge to the same objective value, but the number of iterations is different,
+# as well as the final convergence tolerance (`tol=1e-4`): when solving a model on the GPU with cuDSS, MadNLP has to use
+# a few numerical tricks that impact slightly the accuracy in the evaluation. The tolerance has to be loosened to obtain a reliable convergence on the GPU. If you find the solution not satisfactory, you can specify
 # your own convergence tolerance by using the option `tol`. E.g., to solve the model with the same precision as on the CPU:
 results = madnlp(nlp_gpu; tol=1e-8)
 nothing
 
-# Using MadNLP, we have now all the elements in hand to solve the optimal power flow problem on the GPU.
+# We have now all the elements in hand to solve the full optimal power flow problem on the GPU using MadNLP.
 

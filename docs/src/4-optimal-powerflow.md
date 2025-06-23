@@ -4,13 +4,13 @@ EditURL = "../../4-optimal-powerflow.jl"
 
 # Tutorial 4: solving optimal power flow with MadNLP
 
-With the previous tutorial, we have now all the elements to implement
-the optimal power flow problem with MadNLP. It remains to add to the model
-the following elements:
+The previous tutorial was the last step we needed to implement
+the full optimal power flow problem with MadNLP. It just remains to add
+the following elements to the model:
 
-- an objective penalizing the cost to run each power generator.
-- line flow constraints;
-- voltage angle constraints;
+- the cost to run each power generator;
+- the line flow constraints;
+- the voltage angle constraints;
 
 We start the tutorial again by importing the usual packages:
 
@@ -31,15 +31,11 @@ We import a small instance:
 ````@example 4-optimal-powerflow
 DATA_DIR = "/home/fpacaud/dev/examodels-tutorials/instances"
 data = JLD2.load(joinpath(DATA_DIR, "case9.jld2"))["data"]
-ngen = length(data.gen)
-nbus = length(data.bus)
-nlines = length(data.branch)
 ````
 
 ## Optimal power flow model
 
-We implement the AC optimal power flow problem using ExaModels in the
-following function `acopf_model`:
+We implement in ExaModels the AC optimal power flow problem in the function `acopf_model`:
 
 ````@example 4-optimal-powerflow
 function acopf_model(
@@ -136,8 +132,7 @@ function acopf_model(
 end
 ````
 
-Before diving into the solution on the GPU, we show how to solve `case9`
-using MadNLP:
+Solving `case9` is straightforward using MadNLP:
 
 ````@example 4-optimal-powerflow
 using MadNLP
@@ -167,7 +162,7 @@ nothing
 ````
 
 The instance `case9` is too small to get any significant speed-up compared
-to the CPU. However, we can solve a larger instance just by importing new data:
+to the CPU. However, we can solve a larger instance just by importing new data.
 For instance, to solve the case `10000_goc`:
 
 ````@example 4-optimal-powerflow
