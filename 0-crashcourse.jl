@@ -37,6 +37,8 @@ x_gpu .+= 1.0
 # In general,
 #
 # - We recommend using the broadcast operator `.` as much as you can, as it generates automatically the GPU kernels you need to implement the operation.
+# - More complicated operations can be implemented with [`map`](https://docs.julialang.org/en/v1/base/collections/#Base.map) or [`mapreduce`](https://docs.julialang.org/en/v1/base/collections/#Base.mapreduce), where Julia will generate the appropriate GPU kernels for you.
+# - Often you can use the BLAS functions provided by CUDA.jl, which are optimized for the GPU.
 # - If you really have to, you can implement your own GPU kernel [using CUDA.jl](https://cuda.juliagpu.org/stable/tutorials/introduction/#Writing-your-first-GPU-kernel) or using an abstraction layer like [KernelAbstractions.jl](https://github.com/JuliaGPU/KernelAbstractions.jl/).
 #
 # Now comes the question of evaluating complicated expressions on the GPU.
