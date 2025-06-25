@@ -22,3 +22,10 @@ docs/site/
 # committed for packages, but should be committed for applications that require a static
 # environment.
 Manifest.toml
+
+instances/*
+download
+docs/src/1-powerflow.md
+docs/src/2-block-powerflow.md
+docs/src/3-constrained-powerflow.md
+docs/src/4-optimal-powerflow.md

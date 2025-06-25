@@ -19,7 +19,7 @@ include("utils.jl")
 
 # We load the classical case9ieee instance, here generated using the MATPOWER
 # file found in the [matpower repo](https://github.com/MATPOWER/).
-DATA_DIR = "/home/fpacaud/dev/examodels-tutorials/instances"
+DATA_DIR = joinpath(splitdir(Base.active_project())[1], "instances")
 data = JLD2.load(joinpath(DATA_DIR, "case9.jld2"))["data"]
 
 # The number of buses, generators and lines are:

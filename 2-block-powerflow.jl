@@ -18,7 +18,7 @@ using JLD2
 include("utils.jl")
 
 # We load again the instance case9ieee:
-DATA_DIR = "/home/fpacaud/dev/examodels-tutorials/instances"
+DATA_DIR = joinpath(splitdir(Base.active_project())[1], "instances")
 data = JLD2.load(joinpath(DATA_DIR, "case9.jld2"))["data"]
 
 nbus = length(data.bus)
