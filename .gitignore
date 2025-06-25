@@ -25,7 +25,5 @@ Manifest.toml
 
 instances/*
 download
-docs/src/1-powerflow.md
-docs/src/2-block-powerflow.md
-docs/src/3-constrained-powerflow.md
-docs/src/4-optimal-powerflow.md
+docs/src/*
+notebooks/*

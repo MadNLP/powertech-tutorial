@@ -260,3 +260,5 @@ function analyse_sparsity(Ji::Vi, Jj::Vi, Jx::Vx, m::Int, n::Int, m_fixed, ind_d
     return G, CuArray{Int}(coo_to_csr)
 end
 
+
+nothing
