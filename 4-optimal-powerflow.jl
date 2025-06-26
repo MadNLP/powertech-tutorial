@@ -21,7 +21,7 @@ using JLD2
 include("utils.jl")
 
 # We import a small instance:
-DATA_DIR = "/home/fpacaud/dev/examodels-tutorials/instances"
+DATA_DIR = joinpath(splitdir(Base.active_project())[1], "instances")
 data = JLD2.load(joinpath(DATA_DIR, "case9.jld2"))["data"]
 
 
@@ -35,29 +35,29 @@ function acopf_model(
     T = Float64,
     kwargs...,
 )
-    w = ExaModels.ExaCore(T; backend = backend)
-    va = ExaModels.variable(w, length(data.bus))
-    vm = ExaModels.variable(
+    w = ExaCore(T; backend = backend)
+    va = variable(w, length(data.bus))
+    vm = variable(
         w,
         length(data.bus);
         start = data.vm0,
         lvar = data.vmin,
         uvar = data.vmax,
     )
-    pg = ExaModels.variable(w, length(data.gen); start=data.pg0, lvar = data.pmin, uvar = data.pmax)
-    qg = ExaModels.variable(w, length(data.gen); start=data.qg0, lvar = data.qmin, uvar = data.qmax)
-    p = ExaModels.variable(w, length(data.arc); lvar = -data.rate_a, uvar = data.rate_a)
-    q = ExaModels.variable(w, length(data.arc); lvar = -data.rate_a, uvar = data.rate_a)
+    pg = variable(w, length(data.gen); start=data.pg0, lvar = data.pmin, uvar = data.pmax)
+    qg = variable(w, length(data.gen); start=data.qg0, lvar = data.qmin, uvar = data.qmax)
+    p = variable(w, length(data.arc); lvar = -data.rate_a, uvar = data.rate_a)
+    q = variable(w, length(data.arc); lvar = -data.rate_a, uvar = data.rate_a)
 
-    o = ExaModels.objective(
+    o = objective(
         w,
         g.cost1 * pg[g.i]^2 + g.cost2 * pg[g.i] + g.cost3 for g in data.gen
     )
 
-    c1 = ExaModels.constraint(w, va[i] for i in data.ref_buses)
+    c1 = constraint(w, va[i] for i in data.ref_buses)
 
     ## Active power flow, FR
-    c2 = ExaModels.constraint(
+    c2 = constraint(
         w,
         p[b.f_idx] - b.c5 * vm[b.f_bus]^2 -
         b.c3 * (vm[b.f_bus] * vm[b.t_bus] * cos(va[b.f_bus] - va[b.t_bus])) -
@@ -65,7 +65,7 @@ function acopf_model(
         b in data.branch
     )
     ## Reactive power flow, FR
-    c3 = ExaModels.constraint(
+    c3 = constraint(
         w,
         q[b.f_idx] +
         b.c6 * vm[b.f_bus]^2 +
@@ -74,7 +74,7 @@ function acopf_model(
         b in data.branch
     )
     ## Active power flow, TO
-    c4 = ExaModels.constraint(
+    c4 = constraint(
         w,
         p[b.t_idx] - b.c7 * vm[b.t_bus]^2 -
         b.c1 * (vm[b.t_bus] * vm[b.f_bus] * cos(va[b.t_bus] - va[b.f_bus])) -
@@ -82,7 +82,7 @@ function acopf_model(
         b in data.branch
     )
     ## Reactive power flow, TO
-    c5 = ExaModels.constraint(
+    c5 = constraint(
         w,
         q[b.t_idx] +
         b.c8 * vm[b.t_bus]^2 +
@@ -92,34 +92,34 @@ function acopf_model(
     )
 
     ## Voltage angle difference
-    c6 = ExaModels.constraint(
+    c6 = constraint(
         w,
         va[b.f_bus] - va[b.t_bus] for b in data.branch;
         lcon = data.angmin,
         ucon = data.angmax,
     )
     ## Line flow constraints
-    c7 = ExaModels.constraint(
+    c7 = constraint(
         w,
         p[b.f_idx]^2 + q[b.f_idx]^2 - b.rate_a_sq for b in data.branch;
         lcon = fill!(similar(data.branch, Float64, length(data.branch)), -Inf),
     )
-    c8 = ExaModels.constraint(
+    c8 = constraint(
         w,
         p[b.t_idx]^2 + q[b.t_idx]^2 - b.rate_a_sq for b in data.branch;
         lcon = fill!(similar(data.branch, Float64, length(data.branch)), -Inf),
     )
 
     ## Active power balance
-    c9 = ExaModels.constraint(w, b.pd + b.gs * vm[b.i]^2 for b in data.bus)
-    c11 = ExaModels.constraint!(w, c9, a.bus => p[a.i] for a in data.arc)
-    c13 = ExaModels.constraint!(w, c9, g.bus => -pg[g.i] for g in data.gen)
+    c9 = constraint(w, b.pd + b.gs * vm[b.i]^2 for b in data.bus)
+    c11 = constraint!(w, c9, a.bus => p[a.i] for a in data.arc)
+    c13 = constraint!(w, c9, g.bus => -pg[g.i] for g in data.gen)
     ## Reactive power balance
-    c10 = ExaModels.constraint(w, b.qd - b.bs * vm[b.i]^2 for b in data.bus)
-    c12 = ExaModels.constraint!(w, c10, a.bus => q[a.i] for a in data.arc)
-    c14 = ExaModels.constraint!(w, c10, g.bus => -qg[g.i] for g in data.gen)
+    c10 = constraint(w, b.qd - b.bs * vm[b.i]^2 for b in data.bus)
+    c12 = constraint!(w, c10, a.bus => q[a.i] for a in data.arc)
+    c14 = constraint!(w, c10, g.bus => -qg[g.i] for g in data.gen)
 
-    return ExaModels.ExaModel(w; kwargs...)
+    return ExaModel(w; kwargs...)
 end
 
 # Solving `case9` is straightforward using MadNLP:

@@ -37,6 +37,8 @@ x_gpu .+= 1.0
 # In general,
 #
 # - We recommend using the broadcast operator `.` as much as you can, as it generates automatically the GPU kernels you need to implement the operation.
+# - More complicated operations can be implemented with [`map`](https://docs.julialang.org/en/v1/base/collections/#Base.map) or [`mapreduce`](https://docs.julialang.org/en/v1/base/collections/#Base.mapreduce-Tuple{Any,%20Any,%20Any}), where Julia will generate the appropriate GPU kernels for you.
+# - Often you can use the BLAS functions provided by CUDA.jl, which are optimized for the GPU.
 # - If you really have to, you can implement your own GPU kernel [using CUDA.jl](https://cuda.juliagpu.org/stable/tutorials/introduction/#Writing-your-first-GPU-kernel) or using an abstraction layer like [KernelAbstractions.jl](https://github.com/JuliaGPU/KernelAbstractions.jl/).
 #
 # Now comes the question of evaluating complicated expressions on the GPU.
@@ -75,10 +77,19 @@ gen = (10.0 * sin(x[i]) + i for i in 1:10)
 # We can pass the generator `gen` to ExaModels to build our inequality constraints:
 cons = constraint(core, gen; lcon=0.0)
 
-# We can add more iterators to the constraint `cons` by using the function `constraint!`.
-#
+
 # !!! info
 #     All the data arrays should have concrete, bit-type elements.
+# !!! warning
+#     Do not place for loops outside of the generator. For instance, the code below:
+#     ```julia
+#     # Don't do this!
+#     for i in 1:10
+#         constraint(core, 10.0 * sin(x[i]) + i; lcon=0.0)
+#     end
+#     ```
+#     can severely impact performance by generating a new kernel with each loop iteration, leading to increased compilation time. When working with ExaModels, always construct constraints using generators to clearly communicate the structure of the expressions.
+
 
 # Note that the generator just provides a way to generate expression.
 # The evaluation part comes apart, by creating an `ExaModel` instance that takes as input
