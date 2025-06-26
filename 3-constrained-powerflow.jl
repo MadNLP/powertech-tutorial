@@ -23,7 +23,7 @@ DATA_DIR = joinpath(splitdir(Base.active_project())[1], "instances")
 data = JLD2.load(joinpath(DATA_DIR, "case9.jld2"))["data"]
 ngen = length(data.gen)
 nbus = length(data.bus)
-nlines = length(data.branch)
+nlines = length(data.branch);
 
 # ## Constrained power flow
 # On the contrary to the Tutorial 2, we consider again the power flow equations with a batch size equal to 1.
@@ -36,7 +36,7 @@ vm = variable(core, nbus; start = data.vm0, lvar = data.vmin, uvar = data.vmax)
 pg = variable(core, ngen;  start=data.pg0, lvar = data.pmin, uvar = data.pmax)
 qg = variable(core, ngen;  start=data.qg0, lvar = data.qmin, uvar = data.qmax)
 p = variable(core, 2*nlines)
-q = variable(core, 2*nlines)
+q = variable(core, 2*nlines);
 
 # As we obtain a bounded feasible set, we are not guaranteed to find a solution
 # of the power flow constraints satisfying also the bound constraints. As a result, we
