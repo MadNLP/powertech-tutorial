@@ -93,14 +93,14 @@ c02 = constraint(core, pg[i] for i in free_gen; lcon=data.pg0[free_gen], ucon=da
 #
 # ```
 # Using ExaModels, these two equations translate to the following constraints at the from end of each branch
-c2 = ExaModels.constraint(
+c2 = constraint(
     core,
     p[b.f_idx] - b.c5 * vm[b.f_bus]^2 -
     b.c3 * (vm[b.f_bus] * vm[b.t_bus] * cos(va[b.f_bus] - va[b.t_bus])) -
     b.c4 * (vm[b.f_bus] * vm[b.t_bus] * sin(va[b.f_bus] - va[b.t_bus])) for
     b in data.branch
 )
-c3 = ExaModels.constraint(
+c3 = constraint(
     core,
     q[b.f_idx] +
     b.c6 * vm[b.f_bus]^2 +
@@ -110,14 +110,14 @@ c3 = ExaModels.constraint(
 );
 
 # Similarly, the power flow at the *to* end of each branch is
-c4 = ExaModels.constraint(
+c4 = constraint(
     core,
     p[b.t_idx] - b.c7 * vm[b.t_bus]^2 -
     b.c1 * (vm[b.t_bus] * vm[b.f_bus] * cos(va[b.t_bus] - va[b.f_bus])) -
     b.c2 * (vm[b.t_bus] * vm[b.f_bus] * sin(va[b.t_bus] - va[b.f_bus])) for
     b in data.branch
 )
-c5 = ExaModels.constraint(
+c5 = constraint(
     core,
     q[b.t_idx] +
     b.c8 * vm[b.t_bus]^2 +
@@ -145,19 +145,19 @@ c5 = ExaModels.constraint(
 # power flow balance. This translates to the following syntax in ExaModels. We first
 # iterate over all the buses to define the first part in the expressions:
 
-active_flow_balance = ExaModels.constraint(core, b.pd + b.gs * vm[b.i]^2 for b in data.bus);
+active_flow_balance = constraint(core, b.pd + b.gs * vm[b.i]^2 for b in data.bus);
 
 # Then we modify the constraint inplace to add the contribution of the adjacent lines
-ExaModels.constraint!(core, active_flow_balance, a.bus => p[a.i] for a in data.arc);
+constraint!(core, active_flow_balance, a.bus => p[a.i] for a in data.arc);
 
 # and finally, we add the contribution of the generators connected to each bus:
-ExaModels.constraint!(core, active_flow_balance, g.bus => -pg[g.i] for g in data.gen);
+constraint!(core, active_flow_balance, g.bus => -pg[g.i] for g in data.gen);
 
 # We follow the same procedure for the reactive power flow balance:
 
-reactive_flow_balance = ExaModels.constraint(core, b.qd - b.bs * vm[b.i]^2 for b in data.bus)
-ExaModels.constraint!(core, reactive_flow_balance, a.bus => q[a.i] for a in data.arc)
-ExaModels.constraint!(core, reactive_flow_balance, g.bus => -qg[g.i] for g in data.gen);
+reactive_flow_balance = constraint(core, b.qd - b.bs * vm[b.i]^2 for b in data.bus)
+constraint!(core, reactive_flow_balance, a.bus => q[a.i] for a in data.arc)
+constraint!(core, reactive_flow_balance, g.bus => -qg[g.i] for g in data.gen);
 
 # !!! warning
 #     Avoid using summation inside the generator unless the summation has a fixed, relatively small number of terms. This restriction is intentional, as a variable number of terms can lead to an increased number of kernels needing compilation. `constraint!` helps minimize the required number of kernels by handling the summation of additional terms with a single, separate kernel.

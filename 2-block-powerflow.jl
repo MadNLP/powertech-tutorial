@@ -45,18 +45,18 @@ N = 100
 # Using ExaModels, we can define the corresponding block model by augmenting the
 # dimension of each variable with a second dimension parameterized by the batch size ``N``.
 # This amounts to define the following variables:
-core = ExaModels.ExaCore()
-va = ExaModels.variable(core, nbus, 1:N)
-vm = ExaModels.variable(core, nbus, 1:N; start = repeat(data.vm0, N))
-pg = ExaModels.variable(core, ngen, 1:N;  start=repeat(data.pg0, N))
-qg = ExaModels.variable(core, ngen, 1:N;  start=repeat(data.qg0, N))
-p = ExaModels.variable(core, 2*nlines, 1:N)
-q = ExaModels.variable(core, 2*nlines, 1:N)
+core = ExaCore()
+va = variable(core, nbus, 1:N)
+vm = variable(core, nbus, 1:N; start = repeat(data.vm0, N))
+pg = variable(core, ngen, 1:N;  start=repeat(data.pg0, N))
+qg = variable(core, ngen, 1:N;  start=repeat(data.qg0, N))
+p = variable(core, 2*nlines, 1:N)
+q = variable(core, 2*nlines, 1:N)
 
 # Note that we have to duplicate ``N`` times the starting point for ``v_m``, ``p_g`` and ``q_g``.
 # We also have to evaluate the power flow constraint in block. As a consequence, the iterator
 # used to generate each constraint has to be modified using the iterator `product`:
-c2 = ExaModels.constraint(
+c2 = constraint(
     core,
     p[b.f_idx, k]
     - b.c5 * vm[b.f_bus, k]^2 -

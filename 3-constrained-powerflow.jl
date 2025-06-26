@@ -29,14 +29,14 @@ nlines = length(data.branch)
 # On the contrary to the Tutorial 2, we consider again the power flow equations with a batch size equal to 1.
 # The bounds are easy to define in ExaModels, as we can pass them to the model directly when calling the function `variable` using the keywords `lvar` and `uvar`. We use the bounds specified in the
 # data. As a results, the variables are initialized as follows:
-core = ExaModels.ExaCore()
+core = ExaCore()
 
-va = ExaModels.variable(core, nbus)
-vm = ExaModels.variable(core, nbus; start = data.vm0, lvar = data.vmin, uvar = data.vmax)
-pg = ExaModels.variable(core, ngen;  start=data.pg0, lvar = data.pmin, uvar = data.pmax)
-qg = ExaModels.variable(core, ngen;  start=data.qg0, lvar = data.qmin, uvar = data.qmax)
-p = ExaModels.variable(core, 2*nlines)
-q = ExaModels.variable(core, 2*nlines)
+va = variable(core, nbus)
+vm = variable(core, nbus; start = data.vm0, lvar = data.vmin, uvar = data.vmax)
+pg = variable(core, ngen;  start=data.pg0, lvar = data.pmin, uvar = data.pmax)
+qg = variable(core, ngen;  start=data.qg0, lvar = data.qmin, uvar = data.qmax)
+p = variable(core, 2*nlines)
+q = variable(core, 2*nlines)
 
 # As we obtain a bounded feasible set, we are not guaranteed to find a solution
 # of the power flow constraints satisfying also the bound constraints. As a result, we
@@ -48,12 +48,12 @@ q = ExaModels.variable(core, 2*nlines)
 # and we define the penalization in the objective as ``f(σ) = 1^⊤ σ_P + 1^⊤ σ_N``.
 
 # The variables ``σ`` and the objective are defined in ExaModels as
-spp = ExaModels.variable(core, nbus; lvar=0.0)
-spn = ExaModels.variable(core, nbus; lvar=0.0)
-sqp = ExaModels.variable(core, nbus; lvar=0.0)
-sqn = ExaModels.variable(core, nbus; lvar=0.0)
+spp = variable(core, nbus; lvar=0.0)
+spn = variable(core, nbus; lvar=0.0)
+sqp = variable(core, nbus; lvar=0.0)
+sqn = variable(core, nbus; lvar=0.0)
 
-objective = ExaModels.objective(
+objective = objective(
     core,
     spp[b.i] + spn[b.i] + sqp[b.i] + sqn[b.i] for b in data.bus
 )
@@ -74,33 +74,33 @@ function constrained_power_flow_model(
     pv_buses = get_pv_buses(data)
     free_gen = get_free_generators(data)
 
-    w = ExaModels.ExaCore(T; backend = backend)
+    w = ExaCore(T; backend = backend)
 
-    va = ExaModels.variable(w, nbus)
-    vm = ExaModels.variable(
+    va = variable(w, nbus)
+    vm = variable(
         w,
         nbus;
         start = data.vm0,
         lvar = data.vmin,
         uvar = data.vmax,
     )
-    pg = ExaModels.variable(w, ngen;  start=data.pg0, lvar = data.pmin, uvar = data.pmax)
-    qg = ExaModels.variable(w, ngen;  start=data.qg0, lvar = data.qmin, uvar = data.qmax)
-    p = ExaModels.variable(w, 2*nlines)
-    q = ExaModels.variable(w, 2*nlines)
+    pg = variable(w, ngen;  start=data.pg0, lvar = data.pmin, uvar = data.pmax)
+    qg = variable(w, ngen;  start=data.qg0, lvar = data.qmin, uvar = data.qmax)
+    p = variable(w, 2*nlines)
+    q = variable(w, 2*nlines)
     ## slack variables
-    spp = ExaModels.variable(w, nbus; lvar=0.0)
-    spn = ExaModels.variable(w, nbus; lvar=0.0)
-    sqp = ExaModels.variable(w, nbus; lvar=0.0)
-    sqn = ExaModels.variable(w, nbus; lvar=0.0)
+    spp = variable(w, nbus; lvar=0.0)
+    spn = variable(w, nbus; lvar=0.0)
+    sqp = variable(w, nbus; lvar=0.0)
+    sqn = variable(w, nbus; lvar=0.0)
 
     ## Fix variables to setpoint
-    c1 = ExaModels.constraint(w, va[i] for i in data.ref_buses)
-    c01 = ExaModels.constraint(w, vm[i] for i in pv_buses; lcon=data.vm0[pv_buses], ucon=data.vm0[pv_buses])
-    c02 = ExaModels.constraint(w, pg[i] for i in free_gen; lcon=data.pg0[free_gen], ucon=data.pg0[free_gen])
+    c1 = constraint(w, va[i] for i in data.ref_buses)
+    c01 = constraint(w, vm[i] for i in pv_buses; lcon=data.vm0[pv_buses], ucon=data.vm0[pv_buses])
+    c02 = constraint(w, pg[i] for i in free_gen; lcon=data.pg0[free_gen], ucon=data.pg0[free_gen])
 
     ## Active power flow, FR
-    c2 = ExaModels.constraint(
+    c2 = constraint(
         w,
         p[b.f_idx] - b.c5 * vm[b.f_bus]^2 -
         b.c3 * (vm[b.f_bus] * vm[b.t_bus] * cos(va[b.f_bus] - va[b.t_bus])) -
@@ -108,7 +108,7 @@ function constrained_power_flow_model(
         b in data.branch
     )
     ## Reactive power flow, FR
-    c3 = ExaModels.constraint(
+    c3 = constraint(
         w,
         q[b.f_idx] +
         b.c6 * vm[b.f_bus]^2 +
@@ -117,7 +117,7 @@ function constrained_power_flow_model(
         b in data.branch
     )
     ## Active power flow, TO
-    c4 = ExaModels.constraint(
+    c4 = constraint(
         w,
         p[b.t_idx] - b.c7 * vm[b.t_bus]^2 -
         b.c1 * (vm[b.t_bus] * vm[b.f_bus] * cos(va[b.t_bus] - va[b.f_bus])) -
@@ -125,7 +125,7 @@ function constrained_power_flow_model(
         b in data.branch
     )
     ## Reactive power flow, TO
-    c5 = ExaModels.constraint(
+    c5 = constraint(
         w,
         q[b.t_idx] +
         b.c8 * vm[b.t_bus]^2 +
@@ -135,18 +135,18 @@ function constrained_power_flow_model(
     )
 
     ## Power flow constraints
-    c9 = ExaModels.constraint(w, b.pd + b.gs * vm[b.i]^2 - spp[b.i] + spn[b.i] for b in data.bus)
-    c10 = ExaModels.constraint(w, b.qd - b.bs * vm[b.i]^2 - sqp[b.i] + sqn[b.i] for b in data.bus)
-    c11 = ExaModels.constraint!(w, c9, a.bus => p[a.i] for a in data.arc)
-    c12 = ExaModels.constraint!(w, c10, a.bus => q[a.i] for a in data.arc)
-    c13 = ExaModels.constraint!(w, c9, g.bus => -pg[g.i] for g in data.gen)
-    c14 = ExaModels.constraint!(w, c10, g.bus => -qg[g.i] for g in data.gen)
+    c9 = constraint(w, b.pd + b.gs * vm[b.i]^2 - spp[b.i] + spn[b.i] for b in data.bus)
+    c10 = constraint(w, b.qd - b.bs * vm[b.i]^2 - sqp[b.i] + sqn[b.i] for b in data.bus)
+    c11 = constraint!(w, c9, a.bus => p[a.i] for a in data.arc)
+    c12 = constraint!(w, c10, a.bus => q[a.i] for a in data.arc)
+    c13 = constraint!(w, c9, g.bus => -pg[g.i] for g in data.gen)
+    c14 = constraint!(w, c10, g.bus => -qg[g.i] for g in data.gen)
 
-    o = ExaModels.objective(
+    o = objective(
         w,
         spp[b.i] + spn[b.i] + sqp[b.i] + sqn[b.i] for b in data.bus
     )
-    return ExaModels.ExaModel(w; kwargs...)
+    return ExaModel(w; kwargs...)
 end
 
 # ## Solution with the interior-point solver MadNLP
