@@ -14,7 +14,7 @@ makedocs(
         "Home" => "index.md",
         "Getting Started" => "0-crashcourse.md",
         "Tutorial 1: Power Flow" => "1-powerflow.md",
-        "Tutorial 2: Block Power Flow" => "2-block-powerflow.md",
+        "Tutorial 2: Batched Power Flow" => "2-batched-powerflow.md",
         "Tutorial 3: Constrained Power Flow" => "3-constrained-powerflow.md",
         "Tutorial 4: Optimal Power Flow" => "4-optimal-powerflow.md",
         "Tutorial 5: ExaModelsPower.jl" => "5-exa-models-power.md",

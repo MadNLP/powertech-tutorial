@@ -23,9 +23,9 @@ data = JLD2.load(joinpath(DATA_DIR, "case9.jld2"))["data"]
 
 nbus = length(data.bus)
 ngen = length(data.gen)
-nlines = length(data.branch)
+nlines = length(data.branch);
 
-# ## Block power flow with ExaModels
+# ## Batched power flow with ExaModels
 #
 # The power flow are parameterized by the active and reactive power loads
 # ``p_d`` and ``q_d`` at each bus, among others. This gives a total
@@ -36,13 +36,13 @@ nlines = length(data.branch)
 # To each scenario ``(p_d^n, q_d^n)`` is associated a block. The number of blocks is the batch size ``N``.
 
 # As a demonstration, we set the batch size to 100:
-N = 100
+N = 100;
 
 # For each parameter ``(p_d^n, q_d^n)`` is associated a given solution
 # ``(v_m^n, v_a^n, p_g^n, q_g^n)`` of the power flow equations. We will look at computing
 # all the solutions in parallel using Newton.
 
-# Using ExaModels, we can define the corresponding block model by augmenting the
+# Using ExaModels, we can define the corresponding batched model by augmenting the
 # dimension of each variable with a second dimension parameterized by the batch size ``N``.
 # This amounts to define the following variables:
 core = ExaCore()
@@ -51,10 +51,10 @@ vm = variable(core, nbus, 1:N; start = repeat(data.vm0, N))
 pg = variable(core, ngen, 1:N;  start=repeat(data.pg0, N))
 qg = variable(core, ngen, 1:N;  start=repeat(data.qg0, N))
 p = variable(core, 2*nlines, 1:N)
-q = variable(core, 2*nlines, 1:N)
+q = variable(core, 2*nlines, 1:N);
 
 # Note that we have to duplicate ``N`` times the starting point for ``v_m``, ``p_g`` and ``q_g``.
-# We also have to evaluate the power flow constraint in block. As a consequence, the iterator
+# We also have to evaluate the power flow constraint in batch. As a consequence, the iterator
 # used to generate each constraint has to be modified using the iterator `product`:
 c2 = constraint(
     core,
@@ -66,10 +66,10 @@ c2 = constraint(
 )
 
 # To avoid redefining all the models, we provide a utility function to generate the
-# block power flow model using ExaModels:
+# batched power flow model using ExaModels:
 include("powerflow.jl")
 
-nlp = block_power_flow_model(data, N)
+nlp = batched_power_flow_model(data, N)
 
 # The power flow model can be solved on the CPU using the function
 # `solve_power_flow` we implemented in the previous tutorial:
@@ -85,13 +85,13 @@ vm = reshape(results[nbus*N+1:2*nbus*N], nbus, N)
 # ExaModels is able to detect the repeated data structure automatically, and can evaluate the resulting model in
 # parallel on the GPU. That's the core benefit of the SIMD abstraction used by ExaModels.
 # To evaluate the model on the GPU using ExaModels, you just have to pass the correct backend
-# to the function `block_power_flow_model` we used just before:
+# to the function `batched_power_flow_model` we used just before:
 using CUDA
-nlp_gpu = block_power_flow_model(data, N; backend=CUDABackend())
+nlp_gpu = batched_power_flow_model(data, N; backend=CUDABackend())
 
 n = NLPModels.get_nvar(nlp_gpu)
 m = NLPModels.get_ncon(nlp_gpu)
-nnzj = NLPModels.get_nnzj(nlp_gpu)
+nnzj = NLPModels.get_nnzj(nlp_gpu);
 
 # Evaluating the model on the GPU simply amounts to
 x0 = NLPModels.get_x0(nlp_gpu)
@@ -127,7 +127,7 @@ Ji = similar(x0, Int, nnzj)
 Jj = similar(x0, Int, nnzj)
 NLPModels.jac_structure!(nlp_gpu, Ji, Jj)
 
-G, coo_to_csr = analyse_sparsity(Ji, Jj, Jx, m, n, m_fixed, ind_dep)
+G, coo_to_csr = analyse_sparsity(Ji, Jj, Jx, m, n, m_fixed, ind_dep);
 
 # Now the Jacobian is evaluated, we have to compute the LU factorization on the GPU,
 # if possible in sparse format. The solver [cuDSS](https://docs.nvidia.com/cuda/cudss/getting_started.html) allows to do exactly that. To use cuDSS in Julia, you have to import the package CUDSS
@@ -138,7 +138,7 @@ using CUDSS
 # using the same procedure as in Tutorial 1:
 
 NLPModels.jac_coord!(nlp_gpu, x0, Jx)
-nonzeros(G) .= Jx[coo_to_csr]
+nonzeros(G) .= Jx[coo_to_csr];
 
 # The symbolic factorization in cuDSS proceeds as follows:
 

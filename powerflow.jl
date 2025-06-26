@@ -145,7 +145,7 @@ function solve_power_flow(nlp, N=1; tol=1e-8, max_iter=10)
     return x
 end
 
-function block_power_flow_model(
+function batched_power_flow_model(
     data, K;
     backend = nothing,
     T = Float64,

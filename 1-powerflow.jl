@@ -186,8 +186,8 @@ residual = norm(c[m_fixed+1:end])
 # - voltage magnitude at PV and reference buses
 # - active power generation at PV buses
 #
-# We maintain these degrees of freedom fixed and solve for the dependent variables 
-# that satisfy the power flow equations for this specified setpoint. 
+# We maintain these degrees of freedom fixed and solve for the dependent variables
+# that satisfy the power flow equations for this specified setpoint.
 # This is achieved by applying the Newton method to the power flow balance equations.
 
 
@@ -224,7 +224,7 @@ G = J[m_fixed+1:end, ind_dep]
 
 # This is exactly the matrix we need in the Newton algorithm.
 
-# Although one can obtain `G` with the above strategy, we want to implement a more efficient, non-allocating routine that can be used within Newton's method. To imiplement this, we just need
+# Although one can obtain `G` with the above strategy, we want to implement a more efficient, non-allocating routine that can be used within Newton's method. To implement this, we just need
 # one last routine to pass the data from the vector `Jx` (in COO format) to the nonzeros
 # in the CSC matrix G. To this end, we use the following trick:
 Jx .= 1:nnzj # store index of each coefficient in Jx
