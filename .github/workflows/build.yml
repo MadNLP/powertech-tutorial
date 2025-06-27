@@ -13,9 +13,9 @@ jobs:
       labels: cuda
     steps:
       - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@latest
+      - uses: julia-actions/install-juliaup@v2
         with:
-          version: '1'
+          channel: '1'
       - name: Install dependencies
         run: julia --project=. -e 'using Pkg; Pkg.Registry.update(); Pkg.instantiate()'
       - name: Build and deploy
