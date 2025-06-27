@@ -11,3 +11,6 @@ MadNLP = "2621e9c9-9eb4-46b1-8089-e8c72242dfb6"
 MadNLPGPU = "d72a61cc-809d-412f-99be-fd81f4b8a598"
 Metis = "2679e427-3c69-5b7f-982b-ece356f1e94b"
 NLPModels = "a4795742-8479-5a88-8948-cc11e1c8c1a6"
+
+[sources]
+ExaModelsPower = {url = "https://github.com/exanauts/ExaModelsPower.jl", rev = "main"}

@@ -1,6 +1,7 @@
 using Literate
 
 dest_dir = "docs/src"
+mkpath(dest_dir)
 for script in ["utils.jl", "powerflow.jl"]
     cp(script, joinpath(dest_dir, script); force=true)
 end
@@ -12,6 +13,7 @@ Literate.markdown("4-optimal-powerflow.jl", dest_dir)
 Literate.markdown("5-exa-models-power.jl", dest_dir)
 
 dest_dir = "notebooks"
+mkpath(dest_dir)
 for script in ["utils.jl", "powerflow.jl"]
     cp(script, joinpath(dest_dir, script); force=true)
 end

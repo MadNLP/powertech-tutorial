@@ -21,3 +21,4 @@ makedocs(
     ]
 )
 
+deploydocs(repo = "github.com/MadNLP/powertech-tutorial.git"; push_preview = true)

@@ -1,0 +1,29 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main # update to match your development branch (master, main, dev, trunk, ...)
+    tags: '*'
+  pull_request:
+
+jobs:
+  build:
+    runs-on:
+      labels: cuda
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/install-juliaup@v2
+        with:
+          channel: '1'
+      - name: Install dependencies
+        run: julia --project=. -e 'using Pkg; Pkg.Registry.update(); Pkg.instantiate()'
+      - name: Download instances
+        run: |
+          wget https://cloud.minesparis.psl.eu/index.php/s/8nfxDqzz41H0rpE/download
+          unzip download
+      - name: Build and deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # If authenticating with SSH deploy key
+        run: julia --project=. make.jl
