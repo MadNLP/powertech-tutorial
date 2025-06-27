@@ -18,6 +18,10 @@ jobs:
           channel: '1'
       - name: Install dependencies
         run: julia --project=. -e 'using Pkg; Pkg.Registry.update(); Pkg.instantiate()'
+      - name: Download instances
+        run: |
+          wget https://cloud.minesparis.psl.eu/index.php/s/8nfxDqzz41H0rpE/download
+          unzip download
       - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token
