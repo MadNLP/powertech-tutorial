@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial 2: Batched Power Flow · Powertech tutorial</title><meta name="title" content="Tutorial 2: Batched Power Flow · Powertech tutorial"/><meta property="og:title" content="Tutorial 2: Batched Power Flow · Powertech tutorial"/><meta property="twitter:title" content="Tutorial 2: Batched Power Flow · Powertech tutorial"/><meta name="description" content="Documentation for Powertech tutorial."/><meta property="og:description" content="Documentation for Powertech tutorial."/><meta property="twitter:description" content="Documentation for Powertech tutorial."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script><link href="../assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">Powertech tutorial</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../0-crashcourse/">Getting Started</a></li><li><a class="tocitem" href="../1-powerflow/">Tutorial 1: Power Flow</a></li><li class="is-active"><a class="tocitem" href>Tutorial 2: Batched Power Flow</a><ul class="internal"><li><a class="tocitem" href="#Batched-power-flow-with-ExaModels"><span>Batched power flow with ExaModels</span></a></li><li><a class="tocitem" href="#Solving-the-power-flow-equations-in-batch-on-the-GPU"><span>Solving the power flow equations in batch on the GPU</span></a></li></ul></li><li><a class="tocitem" href="../3-constrained-powerflow/">Tutorial 3: Constrained Power Flow</a></li><li><a class="tocitem" href="../4-optimal-powerflow/">Tutorial 4: Optimal Power Flow</a></li><li><a class="tocitem" href="../5-exa-models-power/">Tutorial 5: ExaModelsPower.jl</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Tutorial 2: Batched Power Flow</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorial 2: Batched Power Flow</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/MadNLP/powertech-tutorial" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/MadNLP/powertech-tutorial/blob/main/2-batched-powerflow.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorial-2:-solving-the-power-flow-equations-in-batch-on-the-GPU"><a class="docs-heading-anchor" href="#Tutorial-2:-solving-the-power-flow-equations-in-batch-on-the-GPU">Tutorial 2: solving the power-flow equations in batch on the GPU</a><a id="Tutorial-2:-solving-the-power-flow-equations-in-batch-on-the-GPU-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-2:-solving-the-power-flow-equations-in-batch-on-the-GPU" title="Permalink"></a></h1><p>In the previous tutorial, we have seen how to solve the power flow equations using ExaModels. Now, we want to fully leverage the capability of ExaModels to solve the power flow equations in batch on the GPU.</p><p>We start by importing the usual packages:</p><pre><code class="language-julia hljs">using LinearAlgebra
+using SparseArrays
+
+using NLPModels
+using ExaModels
+
+using JLD2
+
+include(&quot;utils.jl&quot;)</code></pre><p>We load again the instance case9ieee:</p><pre><code class="language-julia hljs">DATA_DIR = joinpath(splitdir(Base.active_project())[1], &quot;instances&quot;)
+data = JLD2.load(joinpath(DATA_DIR, &quot;case9.jld2&quot;))[&quot;data&quot;]
+
+nbus = length(data.bus)
+ngen = length(data.gen)
+nlines = length(data.branch);</code></pre><h2 id="Batched-power-flow-with-ExaModels"><a class="docs-heading-anchor" href="#Batched-power-flow-with-ExaModels">Batched power flow with ExaModels</a><a id="Batched-power-flow-with-ExaModels-1"></a><a class="docs-heading-anchor-permalink" href="#Batched-power-flow-with-ExaModels" title="Permalink"></a></h2><p>The power flow are parameterized by the active and reactive power loads <span>$p_d$</span> and <span>$q_d$</span> at each bus, among others. This gives a total of <code>2*nbus</code> parameters.</p><p>In this tutorial, we want to solve the power flow equations in batch for <span>$N$</span> different load scenarios <span>$\{ p_d^n, q_d^n \}_{n=1,⋯,N}$</span>, with <span>$N$</span> playing the role of the batch size. To each scenario <span>$(p_d^n, q_d^n)$</span> is associated a block. The number of blocks is the batch size <span>$N$</span>.</p><p>As a demonstration, we set the batch size to 100:</p><pre><code class="language-julia hljs">N = 100;</code></pre><p>For each parameter <span>$(p_d^n, q_d^n)$</span> is associated a given solution <span>$(v_m^n, v_a^n, p_g^n, q_g^n)$</span> of the power flow equations. We will look at computing all the solutions in parallel using Newton.</p><p>Using ExaModels, we can define the corresponding batched model by augmenting the dimension of each variable with a second dimension parameterized by the batch size <span>$N$</span>. This amounts to define the following variables:</p><pre><code class="language-julia hljs">core = ExaCore()
+va = variable(core, nbus, 1:N)
+vm = variable(core, nbus, 1:N; start = repeat(data.vm0, N))
+pg = variable(core, ngen, 1:N;  start=repeat(data.pg0, N))
+qg = variable(core, ngen, 1:N;  start=repeat(data.qg0, N))
+p = variable(core, 2*nlines, 1:N)
+q = variable(core, 2*nlines, 1:N);</code></pre><p>Note that we have to duplicate <span>$N$</span> times the starting point for <span>$v_m$</span>, <span>$p_g$</span> and <span>$q_g$</span>. We also have to evaluate the power flow constraint in batch. As a consequence, the iterator used to generate each constraint has to be modified using the iterator <code>product</code>:</p><pre><code class="language-julia hljs">c2 = constraint(
+    core,
+    p[b.f_idx, k]
+    - b.c5 * vm[b.f_bus, k]^2 -
+    b.c3 * (vm[b.f_bus, k] * vm[b.t_bus, k] * cos(va[b.f_bus, k] - va[b.t_bus, k])) -
+    b.c4 * (vm[b.f_bus, k] * vm[b.t_bus, k] * sin(va[b.f_bus, k] - va[b.t_bus, k])) for
+    (b, k) in product(data.branch, 1:N)
+)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 900
+</code></pre><p>To avoid redefining all the models, we provide a utility function to generate the batched power flow model using ExaModels:</p><pre><code class="language-julia hljs">include(&quot;powerflow.jl&quot;)
+
+nlp = batched_power_flow_model(data, N)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">An ExaModel{Float64, Vector{Float64}, ...}
+
+  Problem name: Generic
+   All variables: ████████████████████ 6000   All constraints: ████████████████████ 6000  
+            free: ████████████████████ 6000              free: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+           lower: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0                lower: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+           upper: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0                upper: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+         low/upp: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0              low/upp: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+           fixed: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0                fixed: ████████████████████ 6000  
+          infeas: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0               infeas: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+            nnzh: ( 99.79% sparsity)   37800           linear: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+                                                    nonlinear: ████████████████████ 6000  
+                                                         nnzj: ( 99.93% sparsity)   24600 
+
+</code></pre><p>The power flow model can be solved on the CPU using the function <code>solve_power_flow</code> we implemented in the previous tutorial:</p><pre><code class="language-julia hljs">results = solve_power_flow(nlp, N)
+nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[ Info: It: 1 residual: 28.281211961300386
+[ Info: It: 2 residual: 1.6641541672388813
+[ Info: It: 3 residual: 0.03123124093240232
+[ Info: It: 4 residual: 7.791517832863897e-6
+[ Info: It: 5 residual: 6.342121166249363e-13</code></pre><p>We recover the solution in matrix format using:</p><pre><code class="language-julia hljs">vm = reshape(results[nbus*N+1:2*nbus*N], nbus, N)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">9×100 Matrix{Float64}:
+ 0.975472  0.975472  0.975472  0.975472  …  0.975472  0.975472  0.975472
+ 0.987007  0.987007  0.987007  0.987007     0.987007  0.987007  0.987007
+ 1.00338   1.00338   1.00338   1.00338      1.00338   1.00338   1.00338
+ 0.985645  0.985645  0.985645  0.985645     0.985645  0.985645  0.985645
+ 1.0       1.0       1.0       1.0          1.0       1.0       1.0
+ 0.957621  0.957621  0.957621  0.957621  …  0.957621  0.957621  0.957621
+ 0.996185  0.996185  0.996185  0.996185     0.996185  0.996185  0.996185
+ 1.0       1.0       1.0       1.0          1.0       1.0       1.0
+ 1.0       1.0       1.0       1.0          1.0       1.0       1.0</code></pre><h2 id="Solving-the-power-flow-equations-in-batch-on-the-GPU"><a class="docs-heading-anchor" href="#Solving-the-power-flow-equations-in-batch-on-the-GPU">Solving the power flow equations in batch on the GPU</a><a id="Solving-the-power-flow-equations-in-batch-on-the-GPU-1"></a><a class="docs-heading-anchor-permalink" href="#Solving-the-power-flow-equations-in-batch-on-the-GPU" title="Permalink"></a></h2><p>Note that we don&#39;t exploit in the algorithm the fact that the <span>$N$</span> blocks are independent. ExaModels is able to detect the repeated data structure automatically, and can evaluate the resulting model in parallel on the GPU. That&#39;s the core benefit of the SIMD abstraction used by ExaModels. To evaluate the model on the GPU using ExaModels, you just have to pass the correct backend to the function <code>batched_power_flow_model</code> we used just before:</p><pre><code class="language-julia hljs">using CUDA
+nlp_gpu = batched_power_flow_model(data, N; backend=CUDABackend())
+
+n = NLPModels.get_nvar(nlp_gpu)
+m = NLPModels.get_ncon(nlp_gpu)
+nnzj = NLPModels.get_nnzj(nlp_gpu);</code></pre><p>Evaluating the model on the GPU simply amounts to</p><pre><code class="language-julia hljs">x0 = NLPModels.get_x0(nlp_gpu)
+c = similar(x0, m)
+NLPModels.cons!(nlp_gpu, x0, c)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6000-element CUDA.CuArray{Float64, 1, CUDA.DeviceMemory}:
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  ⋮
+  0.3
+  0.0
+  0.0
+  0.35
+ -0.0654
+  0.5
+  0.0
+  0.10949999999999999
+ -0.2703</code></pre><p>for the power flow residual, and for the Jacobian:</p><pre><code class="language-julia hljs">Jx = similar(x0, nnzj)
+NLPModels.jac_coord!(nlp_gpu, x0, Jx)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">24600-element CUDA.CuArray{Float64, 1, CUDA.DeviceMemory}:
+  1.0
+  1.0
+  1.0
+  1.0
+  1.0
+  1.0
+  1.0
+  1.0
+  1.0
+  1.0
+  ⋮
+ -1.0
+ -1.0
+ -1.0
+ -1.0
+ -1.0
+ -1.0
+ -1.0
+ -1.0
+ -1.0</code></pre><p>We can benchmark the time spent in the evaluation of the derivative using the macro <code>@time</code> (or <code>CUDA.@time</code> if we want also to include the synchronization time in CUDA):</p><pre><code class="language-julia hljs">CUDA.@time NLPModels.cons!(nlp_gpu, x0, c)
+CUDA.@time NLPModels.jac_coord!(nlp_gpu, x0, Jx)
+nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">  0.001132 seconds (933 CPU allocations: 42.953 KiB)
+  0.000658 seconds (931 CPU allocations: 42.938 KiB)</code></pre><p>We observe that the evaluation of the Jacobian takes 0.3ms in this case. In the function <code>analyse_sparsity</code>, we provide a sparse routine extracting the submatrix corresponding to the power flow equations from the Jacobian J.</p><div class="admonition is-info" id="Info-e95cd9a789bda2c1"><header class="admonition-header">Info<a class="admonition-anchor" href="#Info-e95cd9a789bda2c1" title="Permalink"></a></header><div class="admonition-body"><p>On the GPU, the default format for sparse matrices is CSR, as it leads to better parallelism when computing sparse-matrix vector products.</p></div></div><p>We can assemble the submatrix <code>G</code> using this new function:</p><pre><code class="language-julia hljs">ind_dof = get_index_dof(data, N)
+m_fixed = length(ind_dof)
+ind_dep = setdiff(1:n, ind_dof)
+nx = length(ind_dep)
+
+Ji = similar(x0, Int, nnzj)
+Jj = similar(x0, Int, nnzj)
+NLPModels.jac_structure!(nlp_gpu, Ji, Jj)
+
+G, coo_to_csr = analyse_sparsity(Ji, Jj, Jx, m, n, m_fixed, ind_dep);</code></pre><p>Now the Jacobian is evaluated, we have to compute the LU factorization on the GPU, if possible in sparse format. The solver <a href="https://docs.nvidia.com/cuda/cudss/getting_started.html">cuDSS</a> allows to do exactly that. To use cuDSS in Julia, you have to import the package CUDSS</p><pre><code class="language-julia hljs">using CUDSS</code></pre><p>We update the values in the Jacobian of the original model and transfer them to <code>G</code> using the same procedure as in Tutorial 1:</p><pre><code class="language-julia hljs">NLPModels.jac_coord!(nlp_gpu, x0, Jx)
+nonzeros(G) .= Jx[coo_to_csr];</code></pre><p>The symbolic factorization in cuDSS proceeds as follows:</p><pre><code class="language-julia hljs">d_gpu = CUDA.zeros(Float64, nx)
+b_gpu = CUDA.zeros(Float64, nx)
+
+solver = CudssSolver(G, &quot;G&quot;, &#39;F&#39;)
+cudss_set(solver, &quot;reordering_alg&quot;, &quot;algo2&quot;) # we have to change the ordering to get valid results
+cudss(&quot;analysis&quot;, solver, d_gpu, b_gpu)</code></pre><p>Hence, we are now able to replace KLU by CUDSS in the Newton solver we implemented in the previous tutorial. We initialize the Newton algorithm by evaluating the model at the initial point:</p><pre><code class="language-julia hljs">ind_dep = CuVector{Int}(ind_dep)
+x = copy(x0)
+c = similar(x0, m)
+residual = view(c, m_fixed+1:m)      # get subvector associated to the power flow residual
+
+NLPModels.cons!(nlp_gpu, x, c)
+
+cudss(&quot;factorization&quot;, solver, d_gpu, b_gpu)
+
+max_iter = 10
+tol = 1e-8
+
+@info &quot;Solving the power flow equations with Newton&quot;
+i = 1
+for i in 1:max_iter
+    @info &quot;It: $(i) residual: $(norm(residual))&quot;
+    if norm(residual) &lt;= tol
+        break
+    end
+    NLPModels.jac_coord!(nlp_gpu, x, Jx) # Update values in Jacobian
+    nonzeros(G) .= Jx[coo_to_csr]
+    cudss_set(solver, G)                 # Update numerical factorization
+    cudss(&quot;refactorization&quot;, solver, d_gpu, b_gpu)
+    b_gpu .= residual
+    cudss(&quot;solve&quot;, solver, d_gpu, b_gpu)
+    x[ind_dep] .-= d_gpu
+    NLPModels.cons!(nlp_gpu, x, c)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[ Info: Solving the power flow equations with Newton
+[ Info: It: 1 residual: 28.281211961300375
+[ Info: It: 2 residual: 1.6641541672388802
+[ Info: It: 3 residual: 0.031231240932401566
+[ Info: It: 4 residual: 7.791517846621823e-6
+[ Info: It: 5 residual: 6.257495361292623e-13</code></pre><p>We observe that we get exactly the same convergence as before on the CPU. However, the time to solution is significantly higher than on the CPU: it turns out that KLU is much more efficient than cuDSS on this particular example.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../1-powerflow/">« Tutorial 1: Power Flow</a><a class="docs-footer-nextpage" href="../3-constrained-powerflow/">Tutorial 3: Constrained Power Flow »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.13.0 on <span class="colophon-date" title="Friday 27 June 2025 07:23">Friday 27 June 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

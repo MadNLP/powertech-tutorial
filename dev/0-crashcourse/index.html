@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Getting Started · Powertech tutorial</title><meta name="title" content="Getting Started · Powertech tutorial"/><meta property="og:title" content="Getting Started · Powertech tutorial"/><meta property="twitter:title" content="Getting Started · Powertech tutorial"/><meta name="description" content="Documentation for Powertech tutorial."/><meta property="og:description" content="Documentation for Powertech tutorial."/><meta property="twitter:description" content="Documentation for Powertech tutorial."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script><link href="../assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">Powertech tutorial</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Getting Started</a><ul class="internal"><li><a class="tocitem" href="#GPU-programming-using-CUDA.jl"><span>GPU programming using CUDA.jl</span></a></li><li><a class="tocitem" href="#Modeling-with-ExaModels.jl"><span>Modeling with ExaModels.jl</span></a></li></ul></li><li><a class="tocitem" href="../1-powerflow/">Tutorial 1: Power Flow</a></li><li><a class="tocitem" href="../2-batched-powerflow/">Tutorial 2: Batched Power Flow</a></li><li><a class="tocitem" href="../3-constrained-powerflow/">Tutorial 3: Constrained Power Flow</a></li><li><a class="tocitem" href="../4-optimal-powerflow/">Tutorial 4: Optimal Power Flow</a></li><li><a class="tocitem" href="../5-exa-models-power/">Tutorial 5: ExaModelsPower.jl</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Getting Started</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Getting Started</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/MadNLP/powertech-tutorial" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/MadNLP/powertech-tutorial/blob/main/0-crashcourse.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Getting-started"><a class="docs-heading-anchor" href="#Getting-started">Getting started</a><a id="Getting-started-1"></a><a class="docs-heading-anchor-permalink" href="#Getting-started" title="Permalink"></a></h1><p>This first part is devoted to learning the basic of GPU programming. For those not familiar with the Julia language, we highly recommend reading <a href="https://jump.dev/JuMP.jl/stable/tutorials/getting_started/getting_started_with_julia/">this introduction to Julia</a>.</p><h2 id="GPU-programming-using-CUDA.jl"><a class="docs-heading-anchor" href="#GPU-programming-using-CUDA.jl">GPU programming using CUDA.jl</a><a id="GPU-programming-using-CUDA.jl-1"></a><a class="docs-heading-anchor-permalink" href="#GPU-programming-using-CUDA.jl" title="Permalink"></a></h2><p>Julia has an excellent support for GPU programming with the organization <a href="https://juliagpu.org/">JuliaGPU</a>.</p><p>In this tutorial, we will focus on the library CUDA provided by NVIDIA. We recommend reading <a href="https://cuda.juliagpu.org/stable/tutorials/introduction/">this tutorial</a> to understand the basic concept for programming on the GPU with CUDA. Once installed, you can import CUDA as:</p><pre><code class="language-julia hljs">using CUDA</code></pre><p>By default, you can allocate a new vector in Julia using</p><pre><code class="language-julia hljs">x_cpu = zeros(10)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10-element Vector{Float64}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0</code></pre><p>The allocation of a new vector on the GPU has to be explicited as</p><pre><code class="language-julia hljs">x_gpu = CUDA.zeros(10)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10-element CUDA.CuArray{Float32, 1, CUDA.DeviceMemory}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0</code></pre><p>By default, CUDA.jl allocates a vector of <code>float</code>. In scientific computing, it is often recommended to work with <code>double</code>, encoded by the type <code>Float64</code> in Julia. This has to be explicited as</p><pre><code class="language-julia hljs">x_gpu = CUDA.zeros(Float64, 10)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10-element CUDA.CuArray{Float64, 1, CUDA.DeviceMemory}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0</code></pre><p>The array can be manipulated using the broadcast operator (using a syntax similar as in matlab). Incrementing all the elements in <code>x_gpu</code> by 1 just amounts to</p><pre><code class="language-julia hljs">x_gpu .+= 1.0</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10-element CUDA.CuArray{Float64, 1, CUDA.DeviceMemory}:
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0
+ 1.0</code></pre><div class="admonition is-info" id="Info-1a9e338d2813b90b"><header class="admonition-header">Info<a class="admonition-anchor" href="#Info-1a9e338d2813b90b" title="Permalink"></a></header><div class="admonition-body"><p>On the GPU, accessing the element of an array by its index (e.g. by calling <code>x_gpu[1]</code>) is prohibited by default, and should by avoided at all cost. The whole point of using a GPU is to evaluate operations in parallel, so it usually makes little sense to access an array element by element. If you have to implement non-trivial operations with complicated indexing operations, it is recommended to implement your custom GPU kernels.</p></div></div><p>In general,</p><ul><li>We recommend using the broadcast operator <code>.</code> as much as you can, as it generates automatically the GPU kernels you need to implement the operation.</li><li>More complicated operations can be implemented with <a href="https://docs.julialang.org/en/v1/base/collections/#Base.map"><code>map</code></a> or <a href="https://docs.julialang.org/en/v1/base/collections/#Base.mapreduce-Tuple{Any,%20Any,%20Any}"><code>mapreduce</code></a>, where Julia will generate the appropriate GPU kernels for you.</li><li>Often you can use the BLAS functions provided by CUDA.jl, which are optimized for the GPU.</li><li>If you really have to, you can implement your own GPU kernel <a href="https://cuda.juliagpu.org/stable/tutorials/introduction/#Writing-your-first-GPU-kernel">using CUDA.jl</a> or using an abstraction layer like <a href="https://github.com/JuliaGPU/KernelAbstractions.jl/">KernelAbstractions.jl</a>.</li></ul><p>Now comes the question of evaluating complicated expressions on the GPU.</p><h2 id="Modeling-with-ExaModels.jl"><a class="docs-heading-anchor" href="#Modeling-with-ExaModels.jl">Modeling with ExaModels.jl</a><a id="Modeling-with-ExaModels.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Modeling-with-ExaModels.jl" title="Permalink"></a></h2><p>In optimization, it is recommended to use a modeler to implement your model. The modeler acts as a domain specific language providing you the syntax needed to implement your optimization problem, and it converts the resulting problem in a form suitable for an optimization solver. <a href="https://ampl.com">Ampl</a>, <a href="https://jump.dev">JuMP.jl</a> and <a href="https://www.pyomo.org/">Pyomo</a> are among the most popular modelers, but none of them support GPUs. <a href="https://exanauts.github.io/ExaModels.jl/dev/">ExaModels.jl</a> is an attempt to fill this gap. ExaModels is designed to run on a variety of GPU architectures (NVIDIA, AMD, INTEL) as well as multi-threaded CPUs. As for CUDA.jl, we recommend <a href="https://exanauts.github.io/ExaModels.jl/dev/guide/">this introductory course</a> to ExaModels.</p><p>You can import ExaModels.jl simply as</p><pre><code class="language-julia hljs">using ExaModels</code></pre><p>and instantiate a new model with</p><pre><code class="language-julia hljs">core = ExaCore()</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">An ExaCore
+
+  Float type: ...................... Float64
+  Array type: ...................... Vector{Float64}
+  Backend: ......................... Nothing
+
+  number of objective patterns: .... 0
+  number of constraint patterns: ... 0
+</code></pre><p>Note that ExaModels supports multi-precision by default. Adding new variables to the model is very much similar to other modelers. E.g., adding 10 lower-bounded variables <span>$x ≥ 0$</span> amounts to</p><pre><code class="language-julia hljs">x = variable(core, 10; lvar=0.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Variable
+
+  x ∈ R^{10}
+</code></pre><p>The keyword <code>lvar</code> is used to pass the lower-bounds on the variable <code>x</code>. Similarly, we can pass the upper-bounds using the keyword <code>uvar</code>, and a starting-point using the keyword <code>start</code>.</p><p>Once the variables are defined, ExaModels relies on <a href="https://exanauts.github.io/ExaModels.jl/dev/simd/">a powerful SIMD abstraction</a> to identify automatically the potential for parallelism in the expression tree. ExaModels implements the expression trees using iterator objects. As a consequence, we should define all the expressions in iterator format, and avoid accessing the variable <code>x</code> by its index outside a generator.</p><p>As a demonstration, we show how to generate the constraint <span>$10 × sin(x_i) ≥ 0$</span>. We start by building a Julia generator encoding the expression:</p><pre><code class="language-julia hljs">gen = (10.0 * sin(x[i]) + i for i in 1:10)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Base.Generator{UnitRange{Int64}, Main.var&quot;Main&quot;.var&quot;#1#2&quot;}(Main.var&quot;Main&quot;.var&quot;#1#2&quot;(), 1:10)</code></pre><p>We can pass the generator <code>gen</code> to ExaModels to build our inequality constraints:</p><pre><code class="language-julia hljs">cons = constraint(core, gen; lcon=0.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 10
+</code></pre><div class="admonition is-info" id="Info-559cc2973a5e18b7"><header class="admonition-header">Info<a class="admonition-anchor" href="#Info-559cc2973a5e18b7" title="Permalink"></a></header><div class="admonition-body"><p>All the data arrays should have concrete, bit-type elements.</p></div></div><div class="admonition is-warning" id="Warning-b8b7a9e8a045375f"><header class="admonition-header">Warning<a class="admonition-anchor" href="#Warning-b8b7a9e8a045375f" title="Permalink"></a></header><div class="admonition-body"><p>Do not place for loops outside of the generator. For instance, the code below:</p><pre><code class="language-julia hljs"># Don&#39;t do this!
+for i in 1:10
+    constraint(core, 10.0 * sin(x[i]) + i; lcon=0.0)
+end</code></pre><p>can severely impact performance by generating a new kernel with each loop iteration, leading to increased compilation time. When working with ExaModels, always construct constraints using generators to clearly communicate the structure of the expressions.</p></div></div><p>Note that the generator just provides a way to generate expression. The evaluation part comes apart, by creating an <code>ExaModel</code> instance that takes as input the structure <code>core</code> that stores all the generators required to build the model:</p><pre><code class="language-julia hljs">nlp = ExaModel(core)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">An ExaModel{Float64, Vector{Float64}, ...}
+
+  Problem name: Generic
+   All variables: ████████████████████ 10     All constraints: ████████████████████ 10    
+            free: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0                 free: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+           lower: ████████████████████ 10               lower: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+           upper: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0                upper: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+         low/upp: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0              low/upp: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+           fixed: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0                fixed: ████████████████████ 10    
+          infeas: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0               infeas: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+            nnzh: ( 81.82% sparsity)   10              linear: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+                                                    nonlinear: ████████████████████ 10    
+                                                         nnzj: ( 90.00% sparsity)   10    
+
+</code></pre><p>The constructor <code>ExaModel</code> generates an <code>AbstractNLPModel</code>, which comes with a proper API to evaluate the model in a syntax appropriate for numerical computing. The API can be found <a href="https://jso.dev/NLPModels.jl/stable/api/#Reference-guide">in this documentation</a>. As a consequence, evaluating the constraints implemented by the generator we defined before just translates to:</p><pre><code class="language-julia hljs">using NLPModels
+x = ones(10)                # get an initial point
+c = NLPModels.cons(nlp, x)  # return the results as a vector</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10-element Vector{Float64}:
+  9.414709848078965
+ 10.414709848078965
+ 11.414709848078965
+ 12.414709848078965
+ 13.414709848078965
+ 14.414709848078965
+ 15.414709848078965
+ 16.414709848078964
+ 17.414709848078964
+ 18.414709848078964</code></pre><p>As ExaModels is just manipulating expressions, it is very easy to offload the evaluation of the model on the GPU. ExaModels builds automatically the appropriate kernels to evaluate the expressions implemented in the generators. You can generate a new model on the GPU simply by specifying a new backend to ExaModels:</p><pre><code class="language-julia hljs">core = ExaCore(; backend=CUDABackend())</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">An ExaCore
+
+  Float type: ...................... Float64
+  Array type: ...................... CUDA.CuArray{Float64, 1, CUDA.DeviceMemory}
+  Backend: ......................... CUDA.CUDAKernels.CUDABackend
+
+  number of objective patterns: .... 0
+  number of constraint patterns: ... 0
+</code></pre><p>The generation of the model on the GPU follows the same syntax:</p><pre><code class="language-julia hljs">x = variable(core, 10; lvar=0.0)
+cons = constraint(core, 10.0 * sin(x[i]) + i for i in 1:10; lcon=0.0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 10
+</code></pre><p>as well as the model&#39;s evaluation:</p><pre><code class="language-julia hljs">nlp = ExaModel(core)
+x_gpu = CUDA.ones(Float64, 10)  # get an initial point
+c_gpu = NLPModels.cons(nlp, x_gpu)  # return the results as a vector</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10-element CUDA.CuArray{Float64, 1, CUDA.DeviceMemory}:
+  9.414709848078965
+ 10.414709848078965
+ 11.414709848078965
+ 12.414709848078965
+ 13.414709848078965
+ 14.414709848078965
+ 15.414709848078965
+ 16.414709848078964
+ 17.414709848078964
+ 18.414709848078964</code></pre><p>As we will see in the next tutorial, ExaModels is a powerful tool to evaluate the model&#39;s derivatives using automatic differentiation. This will prove to be particularly useful for solving the power flow equations.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../1-powerflow/">Tutorial 1: Power Flow »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.13.0 on <span class="colophon-date" title="Friday 27 June 2025 07:23">Friday 27 June 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

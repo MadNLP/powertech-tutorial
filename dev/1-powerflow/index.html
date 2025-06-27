@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial 1: Power Flow · Powertech tutorial</title><meta name="title" content="Tutorial 1: Power Flow · Powertech tutorial"/><meta property="og:title" content="Tutorial 1: Power Flow · Powertech tutorial"/><meta property="twitter:title" content="Tutorial 1: Power Flow · Powertech tutorial"/><meta name="description" content="Documentation for Powertech tutorial."/><meta property="og:description" content="Documentation for Powertech tutorial."/><meta property="twitter:description" content="Documentation for Powertech tutorial."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script><link href="../assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">Powertech tutorial</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../0-crashcourse/">Getting Started</a></li><li class="is-active"><a class="tocitem" href>Tutorial 1: Power Flow</a><ul class="internal"><li><a class="tocitem" href="#Implementing-the-power-flow-equations-with-ExaModels"><span>Implementing the power flow equations with ExaModels</span></a></li><li><a class="tocitem" href="#Solving-the-power-flow-equations-using-the-Newton-algorithm"><span>Solving the power flow equations using the Newton algorithm</span></a></li></ul></li><li><a class="tocitem" href="../2-batched-powerflow/">Tutorial 2: Batched Power Flow</a></li><li><a class="tocitem" href="../3-constrained-powerflow/">Tutorial 3: Constrained Power Flow</a></li><li><a class="tocitem" href="../4-optimal-powerflow/">Tutorial 4: Optimal Power Flow</a></li><li><a class="tocitem" href="../5-exa-models-power/">Tutorial 5: ExaModelsPower.jl</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Tutorial 1: Power Flow</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorial 1: Power Flow</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/MadNLP/powertech-tutorial" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/MadNLP/powertech-tutorial/blob/main/1-powerflow.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorial-1:-solving-the-power-flow-equations-with-ExaModels"><a class="docs-heading-anchor" href="#Tutorial-1:-solving-the-power-flow-equations-with-ExaModels">Tutorial 1: solving the power-flow equations with ExaModels</a><a id="Tutorial-1:-solving-the-power-flow-equations-with-ExaModels-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-1:-solving-the-power-flow-equations-with-ExaModels" title="Permalink"></a></h1><p>In this tutorial, we detail how to use ExaModels to solve the power flow equations on the GPU. We start by describing the model we use, and then write a basic Newton solver in Julia.</p><p>While there are off-the-shelf solvers, like <a href="https://github.com/JuliaSmoothOptimizers/NLPModelsIpopt.jl">Ipopt</a> or <a href="https://github.com/MadNLP/MadNLP.jl">MadNLP.jl</a>, we provide this tutorial to illustrate how to directly interact with ExaModels to evaluate the model functions and the derivative, and how to do so efficiently on the GPU. This turorial can be useful for those who want to implement their own solvers, or for those who want to understand how the off-the-shelf solvers work under the hood.</p><p>We start by importing the usual packages (including JLD2, a package to import serialized data in Julia)</p><pre><code class="language-julia hljs">using LinearAlgebra
+using SparseArrays
+
+using NLPModels
+using ExaModels
+
+using JLD2
+
+include(&quot;utils.jl&quot;)</code></pre><p>We load the classical case9ieee instance, here generated using the MATPOWER file found in the <a href="https://github.com/MATPOWER/">matpower repo</a>.</p><pre><code class="language-julia hljs">DATA_DIR = joinpath(splitdir(Base.active_project())[1], &quot;instances&quot;)
+data = JLD2.load(joinpath(DATA_DIR, &quot;case9.jld2&quot;))[&quot;data&quot;];</code></pre><p>The number of buses, generators and lines are:</p><pre><code class="language-julia hljs">nbus = length(data.bus)
+ngen = length(data.gen)
+nlines = length(data.branch);</code></pre><p>We load the indexes of the PV buses and the generators at the PV buses:</p><pre><code class="language-julia hljs">pv_buses = get_pv_buses(data)
+free_gen = get_free_generators(data);</code></pre><h2 id="Implementing-the-power-flow-equations-with-ExaModels"><a class="docs-heading-anchor" href="#Implementing-the-power-flow-equations-with-ExaModels">Implementing the power flow equations with ExaModels</a><a id="Implementing-the-power-flow-equations-with-ExaModels-1"></a><a class="docs-heading-anchor-permalink" href="#Implementing-the-power-flow-equations-with-ExaModels" title="Permalink"></a></h2><p>We model the power flow equations using the AC polar formulation. The AC polar formulation requires the following variables:</p><ol><li>The voltage magnitude at buses <span>$v_m$</span></li><li>The voltage angles at buses <span>$v_a$</span></li><li>The active power generation <span>$p_g$</span></li><li>The reactive power generation <span>$q_g$</span></li><li>The active power flow through the lines <span>$p$</span></li><li>The reactive power flow through the lines <span>$q$</span></li></ol><p>The variables <span>$p$</span> and <span>$q$</span> are dependent variables depending on the voltage magnitudes and angles at the adjacent nodes. The structure of the problem implies that the degree-of-freedoms are the voltage magnitude at the PV and REF buses, the voltage angle at the REF buses (usually set equal to 0) and the active power generation at the PV buses.</p><p>We define the variables in ExaModels.</p><pre><code class="language-julia hljs">core = ExaCore()
+va = variable(core, nbus)
+vm = variable(core, nbus; start = data.vm0)
+pg = variable(core, ngen; start = data.pg0)
+qg = variable(core, ngen; start = data.qg0)
+p = variable(core, 2*nlines)  # FR and TO lines
+q = variable(core, 2*nlines); # FR and TO lines</code></pre><p>We set the initial values in <code>vm</code>, <code>pg</code> and <code>qg</code> using the setpoint values specified in the matpower file.</p><p>We fix the degree-of-freedom at their setpoint using equality constraints. We iterate over the reference buses to set their voltage angle to 0,</p><pre><code class="language-julia hljs">c1 = constraint(core, va[i] for i in data.ref_buses);</code></pre><p>over the PV buses to set the voltage magnitude to the setpoint,</p><pre><code class="language-julia hljs">c01 = constraint(core, vm[i] for i in pv_buses; lcon=data.vm0[pv_buses], ucon=data.vm0[pv_buses]);</code></pre><p>and finally over the generators to fix the active power generation (except at the REF buses):</p><pre><code class="language-julia hljs">c02 = constraint(core, pg[i] for i in free_gen; lcon=data.pg0[free_gen], ucon=data.pg0[free_gen]);</code></pre><p>We use the same model as in <a href="https://matpower.org/docs/manual.pdf">MATPOWER</a> to model the transmission lines, based on the standard <span>$π$</span> transmission line model in series with an ideal phase-shifting transformer. Using the polar formulation, the active power through the line <span>$(i, j)$</span> is defined as at the <em>from end</em> of the branch</p><p class="math-container">\[  p_{i j} = v_{m,i} (g_{i i} v_{m,i}
+  + g_{i j} v_{m, j} \cos(v_{a, i} - v_{a, j})
+  + b_{i j} v_{m, j} \sin(v_{a, i} - v_{a, j}))
+\]</p><p>and the reactive power is defined similarly at the <em>from end</em> of the branch</p><p class="math-container">\[  q_{i j} = v_{m,i} (g_{i i} v_{m,i}
+  + g_{i j}  v_{m, j} \sin(v_{a, i} - v_{a, j})
+  - b_{i j}  v_{m, j} \cos(v_{a, i} - v_{a, j}))
+\]</p><p>Using ExaModels, these two equations translate to the following constraints at the from end of each branch</p><pre><code class="language-julia hljs">c2 = constraint(
+    core,
+    p[b.f_idx] - b.c5 * vm[b.f_bus]^2 -
+    b.c3 * (vm[b.f_bus] * vm[b.t_bus] * cos(va[b.f_bus] - va[b.t_bus])) -
+    b.c4 * (vm[b.f_bus] * vm[b.t_bus] * sin(va[b.f_bus] - va[b.t_bus])) for
+    b in data.branch
+)
+c3 = constraint(
+    core,
+    q[b.f_idx] +
+    b.c6 * vm[b.f_bus]^2 +
+    b.c4 * (vm[b.f_bus] * vm[b.t_bus] * cos(va[b.f_bus] - va[b.t_bus])) -
+    b.c3 * (vm[b.f_bus] * vm[b.t_bus] * sin(va[b.f_bus] - va[b.t_bus])) for
+    b in data.branch
+);</code></pre><p>Similarly, the power flow at the <em>to</em> end of each branch is</p><pre><code class="language-julia hljs">c4 = constraint(
+    core,
+    p[b.t_idx] - b.c7 * vm[b.t_bus]^2 -
+    b.c1 * (vm[b.t_bus] * vm[b.f_bus] * cos(va[b.t_bus] - va[b.f_bus])) -
+    b.c2 * (vm[b.t_bus] * vm[b.f_bus] * sin(va[b.t_bus] - va[b.f_bus])) for
+    b in data.branch
+)
+c5 = constraint(
+    core,
+    q[b.t_idx] +
+    b.c8 * vm[b.t_bus]^2 +
+    b.c2 * (vm[b.t_bus] * vm[b.f_bus] * cos(va[b.t_bus] - va[b.f_bus])) -
+    b.c1 * (vm[b.t_bus] * vm[b.f_bus] * sin(va[b.t_bus] - va[b.f_bus])) for
+    b in data.branch
+);</code></pre><p>It remains to write the power flow balance equations at each bus. They are defined for the active power flow at bus <span>$i=1, ⋯, n_{bus}$</span></p><p class="math-container">\[   p_{g, i} - p_{d, i} - g_{sh,i} v_{m,i}^2 = ∑_{j ∈ N(i)} p_{ij}
+\]</p><p>and for the reactive power flow at bus <span>$i= 1, ⋯, n_{bus}$</span></p><p class="math-container">\[   q_{g, i} - q_{d, i} - b_{sh,i} v_{m,i}^2 = ∑_{j ∈ N(i)} q_{ij}
+\]</p><p>Note that both set of constraints sum over the power flow at the adjacent lines. As we have seen before, ExaModels implements the sum as a reduction over a given iterator. As a consequence, we will evaluate the first terms <span>$p_{g, i} - p_{d, i} - g_{s,i} v_{m,i}^2$</span> apart from the sum <span>$∑_{j ∈ N(i)} p_{ij}$</span> in the expression tree defining the active power flow balance. This translates to the following syntax in ExaModels. We first iterate over all the buses to define the first part in the expressions:</p><pre><code class="language-julia hljs">active_flow_balance = constraint(core, b.pd + b.gs * vm[b.i]^2 for b in data.bus);</code></pre><p>Then we modify the constraint inplace to add the contribution of the adjacent lines</p><pre><code class="language-julia hljs">constraint!(core, active_flow_balance, a.bus =&gt; p[a.i] for a in data.arc);</code></pre><p>and finally, we add the contribution of the generators connected to each bus:</p><pre><code class="language-julia hljs">constraint!(core, active_flow_balance, g.bus =&gt; -pg[g.i] for g in data.gen);</code></pre><p>We follow the same procedure for the reactive power flow balance:</p><pre><code class="language-julia hljs">reactive_flow_balance = constraint(core, b.qd - b.bs * vm[b.i]^2 for b in data.bus)
+constraint!(core, reactive_flow_balance, a.bus =&gt; q[a.i] for a in data.arc)
+constraint!(core, reactive_flow_balance, g.bus =&gt; -qg[g.i] for g in data.gen);</code></pre><div class="admonition is-warning" id="Warning-c462c3a5165c5177"><header class="admonition-header">Warning<a class="admonition-anchor" href="#Warning-c462c3a5165c5177" title="Permalink"></a></header><div class="admonition-body"><p>Avoid using summation inside the generator unless the summation has a fixed, relatively small number of terms. This restriction is intentional, as a variable number of terms can lead to an increased number of kernels needing compilation. <code>constraint!</code> helps minimize the required number of kernels by handling the summation of additional terms with a single, separate kernel.</p></div></div><p>We have now all the equations to evaluate the power flow! Note that we have defined all the expressions inside <code>core</code>: to evaluate them, we convert the ExaCore to a proper ExaModel as:</p><pre><code class="language-julia hljs">nlp = ExaModel(core);</code></pre><p>Using NLPModels API, evaluating the power flow at the initial setpoint amounts to</p><pre><code class="language-julia hljs">x0 = NLPModels.get_x0(nlp)
+c = NLPModels.cons(nlp, x0)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">60-element Vector{Float64}:
+  0.0
+  1.0
+  1.0
+  1.0
+  1.63
+  0.85
+  0.0
+  0.0
+  0.0
+  0.0
+  ⋮
+  0.3
+  0.0
+  0.0
+  0.35
+ -0.0654
+  0.5
+  0.0
+  0.10949999999999999
+ -0.2703</code></pre><p>Remember that the first equations <code>c1</code>, <code>c01</code>, and <code>c02</code> are fixing the degree-of-freedom to their setpoint. The power flow equations <em>per-se</em> are defined by the remaining equations, starting with the constraint <code>c2</code>. We use the attribute <code>offset</code> to determine where does the power flow eq. start in the model</p><pre><code class="language-julia hljs">m_fixed = c2.offset</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6</code></pre><p>Using this offset, we can compute the norm-2 of the initial residual:</p><pre><code class="language-julia hljs">residual = norm(c[m_fixed+1:end])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2.8281211961300383</code></pre><p>If the power flow equations are satisfied, the residual should be zero, which it currently is not. Recall that our degrees of freedom include:</p><ul><li>voltage angle at reference buses</li><li>voltage magnitude at PV and reference buses</li><li>active power generation at PV buses</li></ul><p>We maintain these degrees of freedom fixed and solve for the dependent variables that satisfy the power flow equations for this specified setpoint. This is achieved by applying the Newton method to the power flow balance equations.</p><h2 id="Solving-the-power-flow-equations-using-the-Newton-algorithm"><a class="docs-heading-anchor" href="#Solving-the-power-flow-equations-using-the-Newton-algorithm">Solving the power flow equations using the Newton algorithm</a><a id="Solving-the-power-flow-equations-using-the-Newton-algorithm-1"></a><a class="docs-heading-anchor-permalink" href="#Solving-the-power-flow-equations-using-the-Newton-algorithm" title="Permalink"></a></h2><p>We load the numbers of variables, constraints and nonzeros in the Jacobian (all these values are provided automatically by ExaModels):</p><pre><code class="language-julia hljs">n = NLPModels.get_nvar(nlp)
+m = NLPModels.get_ncon(nlp)
+nnzj = NLPModels.get_nnzj(nlp);</code></pre><p>We load the index of the degree-of-freedom in our model using a utility function:</p><pre><code class="language-julia hljs">ind_dof = get_index_dof(data)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">6-element Vector{Int64}:
+  9
+ 14
+ 17
+ 18
+ 19
+ 20</code></pre><p>and the set of dependent variables is defined as the complement:</p><pre><code class="language-julia hljs">ind_dep = setdiff(1:n, ind_dof)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">54-element Vector{Int64}:
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+ 10
+ 11
+  ⋮
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60</code></pre><p>We start by evaluating the Jacobian using NLPModels. We get the sparsity pattern of our Jacobian in COO format directly by using:</p><pre><code class="language-julia hljs">Ji = similar(x0, Int, nnzj)
+Jj = similar(x0, Int, nnzj)
+NLPModels.jac_structure!(nlp, Ji, Jj)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">([1, 2, 3, 4, 5, 6, 7, 7, 7, 7  …  58, 56, 52, 53, 57, 54, 53, 56, 59, 60], [9, 14, 17, 18, 19, 20, 25, 12, 13, 3  …  54, 55, 56, 57, 58, 59, 60, 22, 23, 24])</code></pre><p>and we evaluate the nonzero values using</p><pre><code class="language-julia hljs">Jx = similar(x0, nnzj)
+NLPModels.jac_coord!(nlp, x0, Jx)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">246-element Vector{Float64}:
+  1.0
+  1.0
+  1.0
+  1.0
+  1.0
+  1.0
+  1.0
+ -1.1550874808900968
+  1.1550874808900968
+ -9.784270426363172
+  ⋮
+  1.0
+  1.0
+  1.0
+  1.0
+  1.0
+  1.0
+ -1.0
+ -1.0
+ -1.0</code></pre><p>Julia uses the CSC format by default to store sparse matrix. We can convert our Jacobian to CSC directly using Julia syntax:</p><pre><code class="language-julia hljs">J = sparse(Ji, Jj, Jx, m, n)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">60×60 SparseArrays.SparseMatrixCSC{Float64, Int64} with 246 stored entries:
+⎡⠀⠀⠀⠀⠁⠀⠐⠀⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎤
+⎢⠀⡤⠀⢀⠀⢠⠄⠀⡀⠑⠀⠀⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⢤⠈⢂⠃⠠⡄⠑⡘⠀⠀⠀⠀⠀⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠢⣂⠈⠁⠔⢔⡀⠉⠠⠀⠀⠀⠀⠀⠀⠑⠄⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⣀⠑⠄⠎⢀⡈⠢⠰⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠢⡀⠀⠀⠀⠀⠀⠀⎥
+⎢⢌⠄⠘⠂⡠⡡⠀⠓⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠢⡀⠀⠀⠀⠀⎥
+⎢⠀⠫⡀⡔⠀⠘⢅⢠⠂⠀⠀⠀⠀⠀⠀⠀⠈⠢⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⡙⡀⠰⠄⢈⢃⠀⠦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠢⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠈⢖⠀⡠⠁⠱⡂⢀⠌⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠐⢄⠀⠀⠀⎥
+⎢⠲⠀⢡⡁⠐⠆⠈⣌⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⢄⠀⎥
+⎢⠑⠁⠀⠀⠪⡊⠀⠀⠐⠀⠀⠀⠀⠀⡀⠠⠀⠀⠠⡀⢀⠀⠀⠀⠀⠀⠀⠀⠀⠑⎥
+⎢⠀⠀⠀⠀⠀⠈⠢⡀⠀⠄⠀⠀⠁⠂⢀⠀⠐⠁⠄⢀⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⢀⠀⠀⠈⠢⠐⠄⠀⠐⠈⠀⠁⠄⠈⠀⠀⠀⠀⠀⠀⢀⠀⠀⢀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠑⢄⠀⠀⠀⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠂⠄⠁⠀⠠⠂⡀⠁⠊⎥
+⎣⠀⠀⠀⠀⠀⠀⠀⠑⢄⠀⠀⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⠐⠈⠂⡀⠐⠀⠈⠀⎦</code></pre><p>And we can extract from the Jacobian the part associated to the power flow balance:</p><pre><code class="language-julia hljs">G = J[m_fixed+1:end, ind_dep]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">54×54 SparseArrays.SparseMatrixCSC{Float64, Int64} with 216 stored entries:
+⎡⠀⠫⡀⡔⠀⠫⢠⠀⠀⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎤
+⎢⡙⡀⠰⠄⡙⡀⠦⠀⠀⠀⠀⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠈⢖⠀⡠⠈⢖⢀⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⠀⠢⡀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠲⠀⢡⡁⠲⠀⣌⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠢⡀⠀⠀⠀⠀⠀⎥
+⎢⠑⡥⠀⢀⠑⡥⠀⠀⠀⠀⠀⠀⠀⠠⡀⠀⠀⠀⠀⠀⠀⠈⠂⠀⠀⠀⠀⎥
+⎢⢤⠈⢂⠃⢤⠈⡘⠀⠀⠀⠀⠀⠀⠀⠈⠢⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠢⣂⠈⠁⠢⣂⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠢⠀⠀⠀⠀⢀⠀⠀⠀⠀⎥
+⎢⣀⠑⠄⠎⣀⠑⠰⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⢄⠀⠀⎥
+⎢⢌⠄⠘⠂⢌⠄⠓⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⢄⎥
+⎢⠀⠀⠀⠀⠑⢄⠀⠀⠀⠄⡀⠂⠈⢀⠄⠈⠂⠔⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠢⠀⠀⢀⠠⠐⠄⠀⠠⠁⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠢⡀⠀⠁⠀⠀⠀⠀⠀⠁⠀⠀⠀⠀⡀⠀⠄⠐⠀⡀⠐⠄⡠⎥
+⎢⠀⠀⠀⠀⠀⠈⢄⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢁⠠⡀⠈⢀⠂⠠⠀⎥
+⎣⠀⠀⠀⠀⠀⠀⠀⠀⠑⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠂⠀⠀⠀⠀⎦</code></pre><p>This is exactly the matrix we need in the Newton algorithm.</p><p>Although one can obtain <code>G</code> with the above strategy, we want to implement a more efficient, non-allocating routine that can be used within Newton&#39;s method. To implement this, we just need one last routine to pass the data from the vector <code>Jx</code> (in COO format) to the nonzeros in the CSC matrix G. To this end, we use the following trick:</p><pre><code class="language-julia hljs">Jx .= 1:nnzj # store index of each coefficient in Jx
+J = sparse(Ji, Jj, Jx, m, n)  # convert the COO matrix to CSC
+G = J[m_fixed+1:end, ind_dep] # extract the submatrix associated to the power flow equations
+coo_to_csc = convert.(Int, nonzeros(G))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">216-element Vector{Int64}:
+  31
+  45
+  76
+  90
+ 120
+ 136
+ 165
+ 181
+  30
+  36
+   ⋮
+ 239
+ 167
+ 240
+ 172
+ 241
+ 177
+ 242
+ 182
+ 243</code></pre><div class="admonition is-info" id="Info-1dbe45a87ffaf315"><header class="admonition-header">Info<a class="admonition-anchor" href="#Info-1dbe45a87ffaf315" title="Permalink"></a></header><div class="admonition-body"><p>Observe that the sparsity pattern of <code>G</code> is not symmetric, as it is the case in matpower. Indeed,  we model explicitly the active and reactive power flow <code>(p, q)</code> through each branch, whereas matpower keeps them implicit (and as a consequence uses a much more compact model).</p></div></div><p>Using this vector of indices, we can automatically pass the data from <code>Jx</code> to <code>G</code> with:</p><pre><code class="language-julia hljs">nonzeros(G) .= @view Jx[coo_to_csc];</code></pre><p>We are now in place to solve the power flow equations. We start by importing KLU:</p><pre><code class="language-julia hljs">using KLU</code></pre><p>and we initialize the Newton algorithm by evaluating the model at the initial point:</p><pre><code class="language-julia hljs">x = copy(x0)
+c = similar(x0, m)
+d = similar(x0, length(ind_dep))     # descent direction
+residual = view(c, m_fixed+1:m)      # get subvector associated to the power flow residual
+
+NLPModels.cons!(nlp, x, c)
+NLPModels.jac_coord!(nlp, x, Jx)
+nonzeros(G) .= @view Jx[coo_to_csc];</code></pre><p>We compute the symbolic factorization using the direct solver KLU:</p><pre><code class="language-julia hljs">ls = klu(G)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">KLU.KLUFactorization{Float64, Int64}
+L factor:
+54×54 SparseArrays.SparseMatrixCSC{Float64, Int64} with 148 stored entries:
+⎡⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎤
+⎢⠀⠀⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠤⢀⡱⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢑⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⠀⠀⣀⠀⠀⠑⢄⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠉⠁⢐⢒⢚⣳⣄⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠒⠒⢂⠉⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢈⣉⣳⣄⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⢁⡈⠂⠐⠂⠀⠀⠀⠀⠀⠀⣉⠀⠀⠀⢈⣉⣉⣿⣿⣷⣄⠀⎥
+⎣⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⎦
+U factor:
+54×54 SparseArrays.SparseMatrixCSC{Float64, Int64} with 208 stored entries:
+⎡⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎤
+⎢⠀⠀⠑⢄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠑⢎⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠀⣧⢠⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠑⢎⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠨⡀⢼⠢⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠑⢤⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⢀⡉⢸⠈⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⢆⠀⠀⠀⣤⠀⠀⠀⢠⡎⠈⠁⠈⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢄⡈⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⢿⠀⠀⠀⢠⡄⠀⠀⠀⡇⢸⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⢦⢐⠈⢹⢨⡀⢀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⢵⣾⢱⠀⠀⡀⢀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢾⡆⢰⡇⢸⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢾⣿⣾⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⠀⎥
+⎣⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠑⎦
+F factor:
+54×54 SparseArrays.SparseMatrixCSC{Float64, Int64} with 16 stored entries:
+⎡⠈⠠⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⠀⠀⠐⠐⢀⠀⢀⠀⠀⎤
+⎢⠀⠀⠈⠠⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣒⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎥
+⎢⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠂⎥
+⎣⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⎦</code></pre><p>The Newton algorithm writes:</p><pre><code class="language-julia hljs">max_iter = 10
+tol = 1e-8
+
+@info &quot;Solving the power flow equations with Newton&quot;
+for i in 1:max_iter
+    @info &quot;It: $(i) residual: $(norm(residual))&quot;
+    if norm(residual) &lt;= tol
+        break
+    end
+    NLPModels.jac_coord!(nlp, x, Jx) # Update values in Jacobian
+    nonzeros(G) .= @view Jx[coo_to_csc]
+    klu!(ls, G)                      # Update numerical factorization
+    ldiv!(d, ls, residual)           # Compute Newton direction using a backsolve
+    x[ind_dep] .-= d
+    NLPModels.cons!(nlp, x, c)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[ Info: Solving the power flow equations with Newton
+[ Info: It: 1 residual: 2.8281211961300383
+[ Info: It: 2 residual: 0.16641541672388815
+[ Info: It: 3 residual: 0.003123124093240259
+[ Info: It: 4 residual: 7.791517827071406e-7
+[ Info: It: 5 residual: 6.401499746556268e-14</code></pre><p>We observe that the Newton algorithm has converged in 5 iterations! The final residual is not exactly 0 but is close enough (close to <code>1e-14</code>). We can recover the solution directly by looking at the values in the vector <code>x</code>. For the voltage angle:</p><pre><code class="language-julia hljs">va_sol = x[1:nbus]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">9-element Vector{Float64}:
+ -0.07011448942396002
+ -0.04200386031871522
+  0.03360808951711486
+  0.010847998939380757
+  0.16875136718264624
+ -0.07592066315404258
+  0.06630715604148196
+  0.08327093684252818
+  0.0</code></pre><p>and for the voltage magnitude:</p><pre><code class="language-julia hljs">vm_sol = x[nbus+1:2*nbus]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">9-element Vector{Float64}:
+ 0.9754721770850534
+ 0.9870068523919056
+ 1.0033754364528011
+ 0.9856448817249474
+ 1.0
+ 0.9576210404299045
+ 0.9961852458090705
+ 1.0
+ 1.0</code></pre><p>We have implemented the generation of the model in a function <code>powerflow_model</code>, and the previous Newton algorithm in a separate function <code>solve_power_flow</code>:</p><pre><code class="language-julia hljs">include(&quot;powerflow.jl&quot;)</code></pre><p>You can test the performance of Newton on various cases using the following code:</p><pre><code class="language-julia hljs">data = JLD2.load(joinpath(DATA_DIR, &quot;pglib_opf_case1354_pegase.jld2&quot;))[&quot;data&quot;]
+
+nlp = powerflow_model(data)
+results = solve_power_flow(nlp)
+nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[ Info: It: 1 residual: 114.94453623771956
+[ Info: It: 2 residual: 9.77587903056736
+[ Info: It: 3 residual: 0.7405168825291231
+[ Info: It: 4 residual: 0.006184429522506654
+[ Info: It: 5 residual: 1.721686601775372e-6
+[ Info: It: 6 residual: 6.625913959067062e-12</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../0-crashcourse/">« Getting Started</a><a class="docs-footer-nextpage" href="../2-batched-powerflow/">Tutorial 2: Batched Power Flow »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.13.0 on <span class="colophon-date" title="Friday 27 June 2025 07:23">Friday 27 June 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

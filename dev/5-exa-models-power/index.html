@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial 5: ExaModelsPower.jl · Powertech tutorial</title><meta name="title" content="Tutorial 5: ExaModelsPower.jl · Powertech tutorial"/><meta property="og:title" content="Tutorial 5: ExaModelsPower.jl · Powertech tutorial"/><meta property="twitter:title" content="Tutorial 5: ExaModelsPower.jl · Powertech tutorial"/><meta name="description" content="Documentation for Powertech tutorial."/><meta property="og:description" content="Documentation for Powertech tutorial."/><meta property="twitter:description" content="Documentation for Powertech tutorial."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script><link href="../assets/favicon.ico" rel="icon" type="image/x-icon"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">Powertech tutorial</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../0-crashcourse/">Getting Started</a></li><li><a class="tocitem" href="../1-powerflow/">Tutorial 1: Power Flow</a></li><li><a class="tocitem" href="../2-batched-powerflow/">Tutorial 2: Batched Power Flow</a></li><li><a class="tocitem" href="../3-constrained-powerflow/">Tutorial 3: Constrained Power Flow</a></li><li><a class="tocitem" href="../4-optimal-powerflow/">Tutorial 4: Optimal Power Flow</a></li><li class="is-active"><a class="tocitem" href>Tutorial 5: ExaModelsPower.jl</a><ul class="internal"><li><a class="tocitem" href="#What-is-ExaModelsPower.jl?"><span>What is ExaModelsPower.jl?</span></a></li><li><a class="tocitem" href="#Getting-started"><span>Getting started</span></a></li><li><a class="tocitem" href="#Static-optimal-power-flow"><span>Static optimal power flow</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Tutorial 5: ExaModelsPower.jl</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorial 5: ExaModelsPower.jl</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/MadNLP/powertech-tutorial" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/MadNLP/powertech-tutorial/blob/main/5-exa-models-power.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorial-5:-solving-the-optimal-power-flow-with-ExaModelsPower.jl"><a class="docs-heading-anchor" href="#Tutorial-5:-solving-the-optimal-power-flow-with-ExaModelsPower.jl">Tutorial 5: solving the optimal power flow with ExaModelsPower.jl</a><a id="Tutorial-5:-solving-the-optimal-power-flow-with-ExaModelsPower.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-5:-solving-the-optimal-power-flow-with-ExaModelsPower.jl" title="Permalink"></a></h1><p>In the previous tutorial, we have seen how to implement power flow equations and optimal power flow using ExaModels.jl. In this tutorial, we will see how to use the off-the-shelf modeling library ExaModelsPower.jl to create optimal power flow models, and how to solve them with GPUs.</p><h2 id="What-is-ExaModelsPower.jl?"><a class="docs-heading-anchor" href="#What-is-ExaModelsPower.jl?">What is ExaModelsPower.jl?</a><a id="What-is-ExaModelsPower.jl?-1"></a><a class="docs-heading-anchor-permalink" href="#What-is-ExaModelsPower.jl?" title="Permalink"></a></h2><p>ExaModelsPower.jl can model OPF problems using the ExaModels package to generate models that can be solved using either CPU or GPU. This tutorial will demonstrate how ExaModelsPower.jl can be leveraged to solve different versions of the OPF, and how the user can customize the solving technique to better match their needs. Currently, all models generated by ExaModelsPower represent the full, AC version of the OPF formulation without any modifications (e.g, convex relaxations).</p><h2 id="Getting-started"><a class="docs-heading-anchor" href="#Getting-started">Getting started</a><a id="Getting-started-1"></a><a class="docs-heading-anchor-permalink" href="#Getting-started" title="Permalink"></a></h2><p>ExaModelsPower.jl package can be installed via</p><pre><code class="language-julia hljs">using Pkg
+Pkg.add(url=&quot;https://github.com/exanauts/ExaModelsPower.jl.git&quot;)</code></pre><p>We will start by importing the necessary packages.</p><pre><code class="language-julia hljs">using ExaModelsPower, CUDA, MadNLPGPU</code></pre><p>ExaModelsPower.jl provides a set of functions to create power flow models, CUDA.jl provides the GPU backend, and MadNLPGPU.jl provides the solver interface to solve the models on the GPU.</p><h2 id="Static-optimal-power-flow"><a class="docs-heading-anchor" href="#Static-optimal-power-flow">Static optimal power flow</a><a id="Static-optimal-power-flow-1"></a><a class="docs-heading-anchor-permalink" href="#Static-optimal-power-flow" title="Permalink"></a></h2><p>We will begin by constructing and solving a static OPF using the function opf_model. A static OPF problem can be created by the following one-liner:</p><pre><code class="language-julia hljs">model, vars, cons = opf_model(
+    &quot;pglib_opf_case118_ieee.m&quot;;
+    backend = CUDABackend(),
+    form = :polar,
+    T = Float64
+)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(An ExaModel{Float64, CUDA.CuArray{Float64, 1, CUDA.DeviceMemory}, ...}
+
+  Problem name: Generic
+   All variables: ████████████████████ 1088   All constraints: ████████████████████ 1539  
+            free: ███⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 118               free: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+           lower: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0                lower: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+           upper: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0                upper: █████⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 372   
+         low/upp: ██████████████████⋅⋅ 935            low/upp: ███⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 186   
+           fixed: █⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 35               fixed: █████████████⋅⋅⋅⋅⋅⋅⋅ 981   
+          infeas: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0               infeas: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+            nnzh: ( 98.57% sparsity)   8474            linear: ⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅⋅ 0     
+                                                    nonlinear: ████████████████████ 1539  
+                                                         nnzj: ( 99.65% sparsity)   5925  
+
+, (va = Variable
+
+  x ∈ R^{118}
+, vm = Variable
+
+  x ∈ R^{118}
+, pg = Variable
+
+  x ∈ R^{54}
+, qg = Variable
+
+  x ∈ R^{54}
+, p = Variable
+
+  x ∈ R^{372}
+, q = Variable
+
+  x ∈ R^{372}
+), (c_ref_angle = Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 1
+, c_to_active_power_flow = Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 186
+, c_to_reactive_power_flow = Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 186
+, c_from_active_power_flow = Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 186
+, c_from_reactive_power_flow = Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 186
+, c_phase_angle_diff = Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 186
+, c_active_power_balance = Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 118
+, c_reactive_power_balance = Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 118
+, c_from_thermal_limit = Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 186
+, c_to_thermal_limit = Constraint
+
+  s.t. (...)
+       g♭ ≤ [g(x,p)]_{p ∈ P} ≤ g♯
+
+  where |P| = 186
+))</code></pre><p>For the static OPF, the only input required is the filename for the OPF matpower file. The file does not need to be locally installed, and it will be automatically downloaded from <strong><a href="https://github.com/power-grid-lib/pglib-opf">power-grid-library</a></strong> if the file is not found in the user&#39;s data folder. If keyword <code>T</code> is not specified, the numerical type will default to Float64. The <code>backend</code> defaults to nothing (used on CPU) and the form will default to polar coordinates. Here, we use <code>CUDABackend()</code> to create the problem on an NVIDIA GPU, and <code>form = :polar</code> to specify that the voltage angles will be represented in polar coordinates. The function returns a tuple containing the model, the variables, and the constraints.</p><p>Once the model is built, we can solve it using the <code>madnlp</code> function from MadNLPGPU.jl. This function will automatically detect the model type and solve it using the appropriate solver.</p><pre><code class="language-julia hljs">result = madnlp(model; tol=1e-6)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;Execution stats: Optimal Solution Found (tol = 1.0e-06).&quot;</code></pre><p>Once a solution has been generated, the values of any of the variables in the model can be unpacked using the vars NamedTuple</p><pre><code class="language-julia hljs">using ExaModels
+solution(result, vars.vm)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">118-element CUDA.CuArray{Float64, 1, CUDA.DeviceMemory}:
+ 1.0580725147180807
+ 1.0115214146060847
+ 1.0371945440875336
+ 1.0127115639234123
+ 1.0170524545915738
+ 1.054436931633914
+ 1.057514683902018
+ 1.0303511034472268
+ 1.0418501518760004
+ 1.0519359527784007
+ ⋮
+ 1.024550803840352
+ 0.9931136288451261
+ 1.0451418653116387
+ 1.019501953686154
+ 1.0074912930252344
+ 1.0573020624016285
+ 1.0514577985619693
+ 1.0467048629523912
+ 1.0331889703360964</code></pre><p>Result also stores the objective value</p><pre><code class="language-julia hljs">result.objective</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">97210.5025742043</code></pre><p>ExaModelsPower supports solving the OPF in either polar or rectangular coordinates. For example, to create a rectangular OPF model, we can simply change the <code>form</code> keyword argument to <code>:rectangular</code>:</p><pre><code class="language-julia hljs">model, vars, cons = opf_model(
+    &quot;pglib_opf_case118_ieee.m&quot;;
+    form = :rect
+)
+result = madnlp(model; tol=1e-6)
+
+# Other features</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;Execution stats: Optimal Solution Found (tol = 1.0e-06).&quot;</code></pre><p>ExaModelsPower.jl is currently under active development. We are currently implementing the following formulations:</p><ul><li>Multi-period OPF (with ramping constraints and/or storage)</li><li>Security-constrained OPF (with N-1 constraints)</li><li>Distribution system OPF (with unbalanced three-phase models)</li></ul><p>For more information on the current status of ExaModelsPower.jl, please refer to the <strong><a href="https://exanauts.github.io/ExaModelsPower.jl/latest/">ExaModelsPower.jl documentation</a></strong>.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../4-optimal-powerflow/">« Tutorial 4: Optimal Power Flow</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.13.0 on <span class="colophon-date" title="Friday 27 June 2025 07:23">Friday 27 June 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
